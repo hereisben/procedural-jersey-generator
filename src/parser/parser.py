@@ -1,0 +1,213 @@
+
+from dataclasses import dataclass
+from typing import List, Optional, Callable
+from ..ast.nodes import (
+    JerseyNode, TeamNode, ColorNode, NumberNode, PlayerNode,
+    SponsorNode, FontNode, PatternNode
+)
+
+@dataclass
+class Token:
+    type: str
+    value: str
+    line: int
+    col: int
+
+class ParserError(SyntaxError):
+    pass
+
+class Parser:
+    def __init__(self, tokens: List[Token]):
+        coerced = [self._coerce(t) for t in tokens]
+        self.tokens = [self._keywordize(t) for t in coerced]
+        self.i = 0
+
+    KEYWORD_MAP = {
+        "jersey":"JERSEY","team":"TEAM","primary":"PRIMARY","secondary":"SECONDARY",
+        "pattern":"PATTERN","number":"NUMBER","player":"PLAYER","sponsor":"SPONSOR","font":"FONT"
+    }
+
+    def _coerce(self, t: object) -> Token:
+        typ  = getattr(t, "type",  getattr(t, "kind",  None))
+        val  = getattr(t, "value", getattr(t, "lexeme", None))
+        line = getattr(t, "line",  0)
+        col  = getattr(t, "col",   0)
+        if typ is None or val is None:
+            raise ParserError(f"Lexer token lacks required fields (type/value). Got: {t!r}")
+        return Token(str(typ), str(val), int(line), int(col))
+
+    def _keywordize(self, t: Token) -> Token:
+        if t.type in ("IDENT", "KEYWORD") and t.value in self.KEYWORD_MAP:
+            return Token(self.KEYWORD_MAP[t.value], t.value, t.line, t.col)
+        return t
+
+    # --- cursor helpers
+    def _peek(self) -> Optional[Token]:
+        return self.tokens[self.i] if self.i < len(self.tokens) else None
+
+    def _match(self, *types: str) -> Optional[Token]:
+        tok = self._peek()
+        if tok and tok.type in types:
+            self.i += 1
+            return tok
+        return None
+
+    def _expect(self, typ: str, msg: str) -> Token:
+        tok = self._match(typ)
+        if not tok:
+            got = self._peek()
+            where = f" at line {got.line}, col {got.col}" if got else ""
+            raise ParserError(f"Expected {typ} {msg}, got {got.type if got else 'EOF'}{where}")
+        return tok
+    
+    IGNORABLE = {
+        "EOF", "NEWLINE", "WS",
+        "COMMENT", "LINE_COMMENT", "BLOCK_COMMENT"
+    }
+
+    def _skip_ignorable(self):
+        while True:
+            tok = self._peek()
+            if tok and tok.type in self.IGNORABLE:
+                self.i += 1
+            else:
+                break
+
+    # ------------- entry point -------------
+    def parse(self) -> JerseyNode:
+        node = self._parse_jersey()
+        self._skip_ignorable()
+        if self._peek() is not None:
+            extra = self._peek()
+            raise ParserError(f"Extra tokens after jersey block at line {extra.line}, col {extra.col}")
+        return node
+
+    # program := jersey_block
+    def _parse_jersey(self) -> JerseyNode:
+        self._expect("JERSEY", "to start jersey block")
+        self._expect("LBRACE", "after 'jersey'")
+        stmts = self._parse_stmt_list()
+        self._expect("RBRACE", "to close jersey block")
+        return JerseyNode(stmts=stmts)
+
+    # stmt_list := { stmt }
+    def _parse_stmt_list(self):
+        stmts = []
+        while True:
+            tok = self._peek()
+            if not tok or tok.type == "RBRACE":
+                break
+            stmts.append(self._parse_stmt())
+        return stmts
+
+    # stmt alternatives
+    def _parse_stmt(self):
+        tok = self._peek()
+        if not tok:
+            raise ParserError("Unexpected EOF inside jersey block")
+
+        if tok.type == "TEAM":
+            return self._parse_team()
+        if tok.type == "PRIMARY":
+            return self._parse_color(kind="primary")
+        if tok.type == "SECONDARY":
+            return self._parse_color(kind="secondary")
+        if tok.type == "NUMBER":
+            return self._parse_number()
+        if tok.type == "PLAYER":
+            return self._parse_player()
+        if tok.type == "SPONSOR":
+            return self._parse_sponsor()
+        if tok.type == "FONT":
+            return self._parse_font()
+        if tok.type == "PATTERN":
+            return self._parse_pattern()
+
+        raise ParserError(f"Unexpected token {tok.type} at line {tok.line}, col {tok.col}")
+
+    # team: "Spartan FC";
+    def _parse_team(self):
+        self._expect("TEAM", "")
+        self._expect("COLON", "after 'team'")
+        s = self._expect("STRING", "for team name").value
+        self._expect("SEMI", "after team string")
+        return TeamNode(name=self._unquote(s))
+
+    # primary/secondary: #RRGGBB;
+    def _parse_color(self, kind: str):
+        # kind ∈ {"primary","secondary"}
+        if kind == "primary":
+            self._expect("PRIMARY", "")
+        else:
+            self._expect("SECONDARY", "")
+        self._expect("COLON", f"after '{kind}'")
+        val_tok = self._expect("COLOR", f"for {kind} color")
+        self._expect("SEMI", f"after {kind} color")
+        return ColorNode(kind=kind, value=val_tok.value)
+
+    # number: 23;
+    def _parse_number(self):
+        self._expect("NUMBER", "")
+        self._expect("COLON", "after 'number'")
+        n = int(self._expect("INT", "for jersey number").value)
+        self._expect("SEMI", "after number")
+        return NumberNode(value=n)
+
+    # player: "BEN";
+    def _parse_player(self):
+        self._expect("PLAYER", "")
+        self._expect("COLON", "after 'player'")
+        s = self._expect("STRING", "for player name").value
+        self._expect("SEMI", "after player")
+        return PlayerNode(name=self._unquote(s))
+
+    # sponsor: "SJSU";
+    def _parse_sponsor(self):
+        self._expect("SPONSOR", "")
+        self._expect("COLON", "after 'sponsor'")
+        s = self._expect("STRING", "for sponsor").value
+        self._expect("SEMI", "after sponsor")
+        return SponsorNode(name=self._unquote(s))
+
+    # font: IDENT | "Some Font";
+    def _parse_font(self):
+        self._expect("FONT", "")
+        self._expect("COLON", "after 'font'")
+        tok = self._match("IDENT", "STRING")
+        if not tok:
+            got = self._peek()
+            raise ParserError(f"Expected font name at line {got.line}, col {got.col}")
+        self._expect("SEMI", "after font")
+        name = self._unquote(tok.value) if tok.type == "STRING" else tok.value
+        return FontNode(name=name)
+
+    # pattern: stripes(7,14);
+    def _parse_pattern(self):
+        self._expect("PATTERN", "")
+        self._expect("COLON", "after 'pattern'")
+        ident = self._expect("IDENT", "for pattern ident").value
+        args = []
+        if self._match("LPAREN"):
+            # arg_list? -> (arg {"," arg})?
+            if self._peek() and self._peek().type not in ("RPAREN",):
+                args.append(self._parse_arg())
+                while self._match("COMMA"):
+                    args.append(self._parse_arg())
+            self._expect("RPAREN", "to close pattern args")
+        self._expect("SEMI", "after pattern")
+        return PatternNode(ident=ident, args=args)
+
+    def _parse_arg(self):
+        tok = self._match("INT", "COLOR", "STRING", "IDENT")
+        if not tok:
+            got = self._peek()
+            raise ParserError(f"Expected argument at line {got.line}, col {got.col}")
+        if tok.type == "INT":
+            return int(tok.value)
+        return self._unquote(tok.value) if tok.type == "STRING" else tok.value
+
+    @staticmethod
+    def _unquote(s: str) -> str:
+        if len(s) >= 2 and s[0] == s[-1] == '"':
+            return bytes(s[1:-1], "utf-8").decode("unicode_escape")
+        return s

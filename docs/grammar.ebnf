@@ -1,30 +1,29 @@
-Program        ::= "jersey" LBRACE DeclList RBRACE ;
-DeclList       ::= { Decl } ;
-Decl           ::= TeamDecl | ColorDecl | PatternDecl | NumberDecl | PlayerDecl | SponsorDecl | FontDecl ;
+(* Jersey DSL – EBNF *)
+program      := jersey_block ;
 
-TeamDecl       ::= "team"     ":" STRING ";" ;
-ColorDecl      ::= ("primary" | "secondary") ":" COLOR ";" ;
-PatternDecl    ::= "pattern"  ":" PatternExpr ";" ;
-NumberDecl     ::= "number"   ":" INT ";" ;
-PlayerDecl     ::= "player"   ":" STRING ";" ;
-SponsorDecl    ::= "sponsor"  ":" STRING ";" ;
-FontDecl       ::= "font"     ":" STRING ";" ;
+jersey_block := "jersey" "{" stmt_list "}" ;
 
-PatternExpr    ::= Ident "(" ArgList? ")" ;
-ArgList        ::= Arg { "," Arg } ;
-Arg            ::= INT | COLOR | STRING ;
+stmt_list    := { stmt } ;
 
-Ident          ::= IDENT ;   (* stripes | hoops | sash | gradient | checker ... *)
-COLOR          ::= "#" HEXDIGIT{3} | "#" HEXDIGIT{6} ;
-INT            ::= DIGIT{1,9} ;
-STRING         ::= '"' { ANY_BUT_QUOTE_OR_NEWLINE | Escaped } '"' ;
-Escaped        ::= '\"' | '\n' | '\t' | '\\' ;
+stmt         := team_stmt
+              | color_primary_stmt
+              | color_secondary_stmt
+              | pattern_stmt
+              | number_stmt
+              | player_stmt
+              | sponsor_stmt
+              | font_stmt ;
 
-LBRACE         ::= '{' ;  RBRACE ::= '}' ;
-LPAREN         ::= '(' ;  RPAREN ::= ')' ;
-SEMI           ::= ';' ;  COLON ::= ':' ;  COMMA ::= ',' ;
+team_stmt            := "team" ":" STRING ";" ;
+color_primary_stmt   := "primary" ":" COLOR ";" ;
+color_secondary_stmt := "secondary" ":" COLOR ";" ;
+number_stmt          := "number" ":" INT ";" ;
+player_stmt          := "player" ":" STRING ";" ;
+sponsor_stmt         := "sponsor" ":" STRING ";" ;
+font_stmt            := "font" ":" (IDENT | STRING) ";" ;
 
-(* Lexer skips: *)
-WS             ::= ( ' ' | '\t' | '\r' | '\n' ) { WS } ;
-LineComment    ::= '//' { any } ( '\n' | EOF ) ;
-BlockComment   ::= '/*' { any } '*/' ;
+pattern_stmt         := "pattern" ":" pattern_expr ";" ;
+pattern_expr         := IDENT [ "(" arg_list? ")" ] ;
+
+arg_list             := arg { "," arg } ;
+arg                  := INT | COLOR | STRING | IDENT ;
