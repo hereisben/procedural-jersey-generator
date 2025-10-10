@@ -1,0 +1,9 @@
+jersey {
+  team: "Spartan FC";
+  primary: #000958;
+  secondary: #FF5B2E;
+  pattern: stripes(7,14);
+  number: 23;
+  player: "BEN";
+  sponsor: "San Jose State University";
+}
