@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import re
+from typing import List, Pattern, Optional
 
 KEYWORDS = {
     "jersey", "team", "primary", "secondary",
@@ -28,6 +29,10 @@ class Token:
     line: int
     col: int
 
+    @property
+    def value(self) -> str:
+        return self.lexeme
+
 class LexerError(Exception):
     pass
 
@@ -53,9 +58,10 @@ class Lexer:
         m = pattern.match(self.src, self.pos)
         return m.group(0) if m else None
 
-    def tokens(self):
-        toks = []
-        while self.pos < len(self.src):
+    def tokens(self) -> List[Token]:
+        toks: List[Token] = []
+        n = len(self.src)
+        while self.pos < n:
             # whitespace
             m = self._match(WHITESPACE_RE)
             if m:
@@ -71,8 +77,10 @@ class Lexer:
                 self._advance(len(m))
                 continue
 
-            start_line, start_col = self.line, self.col
+            if self.pos >= n:
+                break
 
+            start_line, start_col = self.line, self.col
             ch = self.src[self.pos]
 
             # symbols

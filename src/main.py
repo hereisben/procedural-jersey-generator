@@ -1,4 +1,3 @@
-
 import argparse
 from pathlib import Path
 
@@ -8,21 +7,9 @@ from .parser.parser import Parser
 from .ast.nodes import JerseyNode
 
 def _lex(text: str):
-    try:
-        lx = Lexer(text)
-        if hasattr(lx, "tokens"):
-            toks = list(lx.tokens())
-            if toks:
-                return toks
-    except TypeError:
-        pass
-
-    # Fallback: no-arg constructor + tokenize(text)
-    lx = Lexer()
-    if hasattr(lx, "tokenize"):
-        return lx.tokenize(text)
-
-    raise RuntimeError("Lexer interface not recognized. Expected .tokens() or .tokenize(text).")
+    lx = Lexer(text)
+    toks = lx.tokens()
+    return list(toks)
 
 def dump_tokens(tokens, out_path: Path | None):
     for t in tokens:
