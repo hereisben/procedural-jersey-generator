@@ -1,10 +1,17 @@
 from dataclasses import dataclass
 import re
-from typing import List, Pattern, Optional
+from typing import List
 
 KEYWORDS = {
-    "jersey", "team", "primary", "secondary",
-    "pattern", "number", "player", "sponsor", "font"
+    "jersey": "JERSEY",
+    "team": "TEAM",
+    "primary": "PRIMARY",
+    "secondary": "SECONDARY",
+    "pattern": "PATTERN",
+    "number": "NUMBER",
+    "player": "PLAYER",
+    "sponsor": "SPONSOR",
+    "font": "FONT",
 }
 
 SYMBOLS = {
@@ -19,19 +26,14 @@ STR_RE   = re.compile(r'"(?:\\.|[^"\\\n])*"')
 
 LINE_COMMENT_RE  = re.compile(r"//.*?(?=\n|$)")
 BLOCK_COMMENT_RE = re.compile(r"/\*.*?\*/", re.S)
-
 WHITESPACE_RE = re.compile(r"[ \t\r\n]+")
 
 @dataclass
 class Token:
     type: str
-    lexeme: str
+    value: str
     line: int
     col: int
-
-    @property
-    def value(self) -> str:
-        return self.lexeme
 
 class LexerError(Exception):
     pass
@@ -48,8 +50,8 @@ class Lexer:
         line_breaks = segment.count('\n')
         if line_breaks:
             self.line += line_breaks
-            last_nl = segment.rfind('\n')
-            self.col = len(segment) - last_nl
+            last_nl_idx = segment.rfind('\n')
+            self.col = len(segment) - last_nl_idx
         else:
             self.col += n
         self.pos += n
@@ -113,7 +115,7 @@ class Lexer:
             # ident / keyword
             m = self._match(IDENT_RE)
             if m:
-                typ = 'KEYWORD' if m in KEYWORDS else 'IDENT'
+                typ = KEYWORDS.get(m, 'IDENT')
                 toks.append(Token(typ, m, start_line, start_col))
                 self._advance(len(m))
                 continue

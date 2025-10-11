@@ -1,18 +1,17 @@
-1:1	KEYWORD	jersey
+1:1	JERSEY	jersey
 1:8	LBRACE	{
-2:3	KEYWORD	team
+2:3	TEAM	team
 2:7	COLON	:
 2:9	STRING	"Spartan FC"
-2:21	SEMI	;
-3:3	KEYWORD	primary
+3:3	PRIMARY	primary
 3:10	COLON	:
 3:12	COLOR	#000958
 3:19	SEMI	;
-4:3	KEYWORD	secondary
+4:3	SECONDARY	secondary
 4:12	COLON	:
 4:14	COLOR	#FF5B2E
 4:21	SEMI	;
-5:3	KEYWORD	pattern
+5:3	PATTERN	pattern
 5:10	COLON	:
 5:12	IDENT	stripes
 5:19	LPAREN	(
@@ -21,15 +20,15 @@
 5:22	INT	14
 5:24	RPAREN	)
 5:25	SEMI	;
-6:3	KEYWORD	number
+6:3	NUMBER	number
 6:9	COLON	:
 6:11	INT	23
 6:13	SEMI	;
-7:3	KEYWORD	player
+7:3	PLAYER	player
 7:9	COLON	:
 7:11	STRING	"BEN"
 7:16	SEMI	;
-8:3	KEYWORD	sponsor
+8:3	SPONSOR	sponsor
 8:10	COLON	:
 8:12	STRING	"San Jose State University"
 8:39	SEMI	;

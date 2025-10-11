@@ -1,6 +1,6 @@
 
 from dataclasses import dataclass
-from typing import List, Optional, Callable
+from typing import List, Optional
 from ..ast.nodes import (
     JerseyNode, TeamNode, ColorNode, NumberNode, PlayerNode,
     SponsorNode, FontNode, PatternNode
@@ -18,28 +18,8 @@ class ParserError(SyntaxError):
 
 class Parser:
     def __init__(self, tokens: List[Token]):
-        coerced = [self._coerce(t) for t in tokens]
-        self.tokens = [self._keywordize(t) for t in coerced]
+        self.tokens = tokens
         self.i = 0
-
-    KEYWORD_MAP = {
-        "jersey":"JERSEY","team":"TEAM","primary":"PRIMARY","secondary":"SECONDARY",
-        "pattern":"PATTERN","number":"NUMBER","player":"PLAYER","sponsor":"SPONSOR","font":"FONT"
-    }
-
-    def _coerce(self, t: object) -> Token:
-        typ  = getattr(t, "type",  getattr(t, "kind",  None))
-        val  = getattr(t, "value", getattr(t, "lexeme", None))
-        line = getattr(t, "line",  0)
-        col  = getattr(t, "col",   0)
-        if typ is None or val is None:
-            raise ParserError(f"Lexer token lacks required fields (type/value). Got: {t!r}")
-        return Token(str(typ), str(val), int(line), int(col))
-
-    def _keywordize(self, t: Token) -> Token:
-        if t.type in ("IDENT", "KEYWORD") and t.value in self.KEYWORD_MAP:
-            return Token(self.KEYWORD_MAP[t.value], t.value, t.line, t.col)
-        return t
 
     # --- cursor helpers
     def _peek(self) -> Optional[Token]:
@@ -59,26 +39,12 @@ class Parser:
             where = f" at line {got.line}, col {got.col}" if got else ""
             raise ParserError(f"Expected {typ} {msg}, got {got.type if got else 'EOF'}{where}")
         return tok
-    
-    IGNORABLE = {
-        "EOF", "NEWLINE", "WS",
-        "COMMENT", "LINE_COMMENT", "BLOCK_COMMENT"
-    }
-
-    def _skip_ignorable(self):
-        while True:
-            tok = self._peek()
-            if tok and tok.type in self.IGNORABLE:
-                self.i += 1
-            else:
-                break
 
     # ------------- entry point -------------
     def parse(self) -> JerseyNode:
         node = self._parse_jersey()
-        self._skip_ignorable()
-        if self._peek() is not None:
-            extra = self._peek()
+        extra = self._peek()
+        if extra and extra.type != "EOF":
             raise ParserError(f"Extra tokens after jersey block at line {extra.line}, col {extra.col}")
         return node
 
@@ -91,11 +57,11 @@ class Parser:
         return JerseyNode(stmts=stmts)
 
     # stmt_list := { stmt }
-    def _parse_stmt_list(self):
+    def _parse_stmt_list(self) -> List[object]:
         stmts = []
         while True:
             tok = self._peek()
-            if not tok or tok.type == "RBRACE":
+            if not tok or tok.type in ("RBRACE", "EOF"):
                 break
             stmts.append(self._parse_stmt())
         return stmts
