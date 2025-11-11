@@ -1,0 +1,5 @@
+jersey {
+  primary: #123456;
+  primary: #abcdef;
+  secondary: #999;
+}
