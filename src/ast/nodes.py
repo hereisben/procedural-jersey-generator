@@ -7,7 +7,7 @@ class TeamNode:
 
 @dataclass
 class ColorNode:
-    kind: str  # 'primary' | 'secondary'
+    kind: str  # 'primary' | 'secondary' | 'patterncolor'
     value: str # "#RRGGBB" or "#RGB"
 
 @dataclass

@@ -88,6 +88,8 @@ class Parser:
             return self._parse_font()
         if tok.type == "PATTERN":
             return self._parse_pattern()
+        if tok.type == "PATTERNCOLOR":
+            return self._parse_color(kind="patterncolor")
 
         raise ParserError(f"Unexpected token {tok.type} at line {tok.line}, col {tok.col}")
 
@@ -101,11 +103,14 @@ class Parser:
 
     # primary/secondary: #RRGGBB;
     def _parse_color(self, kind: str):
-        # kind ∈ {"primary","secondary"}
         if kind == "primary":
             self._expect("PRIMARY", "")
-        else:
+        elif kind == "secondary":
             self._expect("SECONDARY", "")
+        elif kind == "patterncolor":
+            self._expect("PATTERNCOLOR", "")
+        else:
+            raise ParserError(f"Unknown color kind: {kind}")
         self._expect("COLON", f"after '{kind}'")
         val_tok = self._expect("COLOR", f"for {kind} color")
         self._expect("SEMI", f"after {kind} color")

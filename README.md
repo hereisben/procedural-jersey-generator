@@ -32,3 +32,9 @@ jersey {
   output: "spartan_fc.svg";
 }
 ```
+
+### Render all
+
+<!-- for f in examples/*.jersey; do
+  python -m src.main "$f" --render-svg --out "${f%.jersey}.svg"
+done -->

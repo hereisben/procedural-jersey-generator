@@ -1,0 +1,11 @@
+jersey {
+  team: "Diagonals";
+  primary: #ffffff;
+  secondary: #111111;
+  patterncolor: #111111;
+  pattern: sash(52,60);
+  number: 21;
+  player: "BEN";
+  sponsor: "DIAG";
+  font: "Arial";
+}

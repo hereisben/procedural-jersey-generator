@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 700" width="600" height="700">
+  <rect x="0" y="0" width="600" height="700" fill="#fff"/>
+  
+      <defs>
+        <clipPath id="jerseyClip">
+          <path d="M150,120 L240,60 L360,60 L450,120 L520,230 L520,600 L80,600 L80,230 Z"/>
+          <path d="M80,230 L40,260 L40,330 L80,330 Z"/>
+          <path d="M520,230 L560,260 L560,330 L520,330 Z"/>
+        </clipPath>
+      </defs>
+    
+  
+  <g id="jersey">
+    <path d="M80,230 L40,260 L40,330 L80,330 Z"  fill="#263238"/><path d="M520,230 L560,260 L560,330 L520,330 Z" fill="#263238"/><path d="M150,120 L240,60 L360,60 L450,120 L520,230 L520,600 L80,600 L80,230 Z"        fill="#263238"/>
+    <g clip-path="url(#jerseyClip)"></g>
+    <path d="M80,230 L40,260 L40,330 L80,330 Z"  fill="none" stroke="#111" stroke-width="3"/><path d="M520,230 L560,260 L560,330 L520,330 Z" fill="none" stroke="#111" stroke-width="3"/><path d="M150,120 L240,60 L360,60 L450,120 L520,230 L520,600 L80,600 L80,230 Z"         fill="none" stroke="#111" stroke-width="3"/>
+    <g clip-path="url(#jerseyClip)">
+      <text x="300.0" y="200" text-anchor="middle" font-weight="bold" font-family="Arial" font-size="60" fill="#ECEFF1" letter-spacing="2">BEN</text>
+      <text x="300.0" y="540" text-anchor="middle" font-weight="bold" font-family="Arial" font-size="60" fill="#ECEFF1">Minimal</text>
+      <text x="300.0" y="100" text-anchor="middle" font-weight="bold" font-family="Arial" font-size="22" fill="#ECEFF1">MINI</text>
+      <text x="300.0" y="410" text-anchor="middle" font-weight="bold" font-family="Arial" font-size="180" fill="#ECEFF1">8</text>
+    </g>
+  </g>
+</svg>

@@ -14,6 +14,7 @@ class JerseySpec:
     team: Optional[str] = None
     primary: Optional[str] = None
     secondary: Optional[str] = None
+    patterncolor: Optional[str] = None
     number: Optional[int] = None
     player: Optional[str] = None
     sponsor: Optional[str] = None
@@ -38,9 +39,12 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
             spec.team = s.name.strip()
 
         elif isinstance(s, ColorNode):
-            key = s.kind  # "primary" or "secondary"
+            # allow: primary | secondary | patterncolor
+            key = s.kind
+            if key not in ("primary", "secondary", "patterncolor"):
+                raise SemanticError(f"Unknown color kind: {key}")
             _check_dup(key, seen)
-            spec.__setattr__(key, _hex6(s.value))
+            setattr(spec, key, _hex6(s.value))
 
         elif isinstance(s, NumberNode):
             _check_dup("number", seen)

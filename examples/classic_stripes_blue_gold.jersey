@@ -1,0 +1,11 @@
+jersey {
+  team: "Spartan FC";
+  primary: #0a4cff;
+  secondary: #ffcc00;
+  patterncolor: #ffffff;
+  pattern: stripes(8,40);
+  number: 10;
+  player: "BEN";
+  sponsor: "SJSU";
+  font: "Arial";
+}

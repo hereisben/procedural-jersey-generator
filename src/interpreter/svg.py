@@ -1,5 +1,4 @@
 # src/interpreter/svg.py
-from typing import Tuple, List, Union
 from dataclasses import dataclass
 from ..semantic.checks import JerseySpec
 
@@ -15,34 +14,67 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     prim = spec.primary or "#0033AA"
     sec  = spec.secondary or "#FFCC00"
 
-    body = f'<path d="M150,120 L240,60 L360,60 L450,120 L520,230 L520,600 L80,600 L80,230 Z" fill="{prim}" stroke="#111" stroke-width="3"/>'
-    sleeves = (
-        f'<path d="M80,230 L40,260 L40,330 L80,330 Z" fill="{prim}" stroke="#111" stroke-width="3"/>'
-        f'<path d="M520,230 L560,260 L560,330 L520,330 Z" fill="{prim}" stroke="#111" stroke-width="3"/>'
+    # --- jersey geometry (reusable) ---
+    body_path = 'M150,120 L240,60 L360,60 L450,120 L520,230 L520,600 L80,600 L80,230 Z'
+    left_sleeve_path  = 'M80,230 L40,260 L40,330 L80,330 Z'
+    right_sleeve_path = 'M520,230 L560,260 L560,330 L520,330 Z'
+
+    # --- clipped pattern layer (mask to jersey shape) ---
+    defs = f'''
+      <defs>
+        <clipPath id="jerseyClip">
+          <path d="{body_path}"/>
+          <path d="{left_sleeve_path}"/>
+          <path d="{right_sleeve_path}"/>
+        </clipPath>
+      </defs>
+    '''
+
+    # Base fill (under everything)
+    base_fill = (
+        f'<path d="{left_sleeve_path}"  fill="{prim}"/>'
+        f'<path d="{right_sleeve_path}" fill="{prim}"/>'
+        f'<path d="{body_path}"        fill="{prim}"/>'
     )
 
-    pattern = _pattern_layer(spec, prim, sec)
+    # Pattern runs full-canvas but is clipped to jersey
+    patcol = spec.patterncolor or "#FFFFFF"
+    pattern = f'<g clip-path="url(#jerseyClip)">{_pattern_layer(spec, prim, patcol)}</g>'
 
-    team    = _svg_text(spec.team,   x=W/2, y=220, size=26,  anchor="middle", weight="bold", fill=sec, font=spec.font)
-    sponsor = _svg_text(spec.sponsor, x=W/2, y=300, size=32,  anchor="middle", weight="bold", fill=sec, font=spec.font) if spec.sponsor else ""
-    number  = _svg_text(str(spec.number), x=W/2, y=400, size=120, anchor="middle", weight="bold", fill=sec, font=spec.font)
-    player  = _svg_text(spec.player, x=W/2, y=160, size=22,  anchor="middle", weight="bold", fill=sec, font=spec.font, letter_spacing="2")
+    # Outlines on top
+    outlines = (
+        f'<path d="{left_sleeve_path}"  fill="none" stroke="#111" stroke-width="3"/>'
+        f'<path d="{right_sleeve_path}" fill="none" stroke="#111" stroke-width="3"/>'
+        f'<path d="{body_path}"         fill="none" stroke="#111" stroke-width="3"/>'
+    )
 
-    debug = f'<rect x="0" y="0" width="{W}" height="{H}" fill="none" stroke="magenta" stroke-dasharray="4,4"/>' if (opts and opts.show_debug) else ""
+    # --- text layers ---
+    team    = _svg_text(spec.team,   x=W/2, y=540, size=60,  anchor="middle", weight="bold", fill=sec, font=spec.font)
+    sponsor = _svg_text(spec.sponsor, x=W/2, y=100, size=22,  anchor="middle", weight="bold", fill=sec, font=spec.font) if spec.sponsor else ""
+    number  = _svg_text(str(spec.number), x=W/2, y=410, size=180, anchor="middle", weight="bold", fill=sec, font=spec.font)
+    player  = _svg_text(spec.player, x=W/2, y=200, size=60,  anchor="middle", weight="bold", fill=sec, font=spec.font, letter_spacing="2")
+
+    debug = (
+        f'<rect x="0" y="0" width="{W}" height="{H}" fill="none" stroke="magenta" stroke-dasharray="4,4"/>'
+        if (opts and opts.show_debug) else ""
+    )
 
     return (
         f"{SVG_HEADER}\n"
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}">\n'
         f'  <rect x="0" y="0" width="{W}" height="{H}" fill="#fff"/>\n'
+        f'  {defs}\n'
         f'  {debug}\n'
         f'  <g id="jersey">\n'
-        f'    {sleeves}\n'
-        f'    {body}\n'
+        f'    {base_fill}\n'
         f'    {pattern}\n'
-        f'    {player}\n'
-        f'    {team}\n'
-        f'    {sponsor}\n'
-        f'    {number}\n'
+        f'    {outlines}\n'
+        f'    <g clip-path="url(#jerseyClip)">\n'   # 👈 new clip group for text
+        f'      {player}\n'
+        f'      {team}\n'
+        f'      {sponsor}\n'
+        f'      {number}\n'
+        f'    </g>\n'
         f'  </g>\n'
         f'</svg>\n'
     )
@@ -85,18 +117,19 @@ def _pattern_layer(spec: JerseySpec, prim: str, sec: str) -> str:
 
     return ""  # unknown pattern: ignore
 
+# Full-canvas stripes/hoops; clipPath hides overflow beyond jersey
 def _vertical_stripes(count: int, thickness: int, color: str) -> str:
-    left, right, top, bottom = 100, 500, 120, 600
+    left, right, top, bottom = 0, W, 0, H
     span = right - left
     gap = span / max(count, 1)
     rects = []
     for i in range(count):
         x = left + i * gap + (gap - thickness) / 2
-        rects.append(f'<rect x="{x:.1f}" y="{top}" width="{thickness}" height="{bottom-top}" fill="{color}" opacity="0.75"/>')
+        rects.append(f'<rect x="{x:.1f}" y="{top}" width="{thickness}" height="{bottom-top}" fill="{color}" opacity="0.90"/>')
     return "\n".join(rects)
 
 def _horizontal_hoops(count: int, thickness: int, color: str) -> str:
-    left, right, top, bottom = 100, 500, 150, 580
+    left, right, top, bottom = 0, W, 0, H
     span = bottom - top
     gap = span / max(count, 1)
     rects = []
@@ -109,6 +142,6 @@ def _sash(angle: int, width: int, color: str) -> str:
     cx, cy = W/2, H/2 + 40
     return (
         f'<g transform="translate({cx},{cy}) rotate({-abs(angle)}) translate({-cx}, {-cy})">'
-        f'  <rect x="120" y="140" width="{width}" height="520" fill="{color}" opacity="0.75"/>'
+        f'  <rect x="200" y="0" width="{width}" height="{H}" fill="{color}" opacity="0.75"/>'
         f'</g>'
     )
