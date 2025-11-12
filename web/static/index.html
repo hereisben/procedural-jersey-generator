@@ -275,10 +275,10 @@
         </div>
 
         <div class="bar">
-          <button id="applyPreset" class="primary">
+          <button style="display: none" id="applyPreset" class="primary">
             Apply preset → Build DSL
           </button>
-          <span class="muted">Adjust preset → Build DSL → Render</span>
+          <p class="muted">Adjust preset → Build DSL → Render</p>
         </div>
       </div>
     </div>
@@ -290,9 +290,6 @@
         <div class="bar">
           <button id="renderBtn">Render</button>
           <button id="exampleBtn">Load example</button>
-          <label class="row" style="margin-left: auto">
-            <input type="checkbox" id="live" checked /> Live preview
-          </label>
         </div>
         <textarea id="src"></textarea>
         <div id="err" class="error"></div>
