@@ -126,23 +126,19 @@
       .hidden {
         display: none;
       }
-
       .args-row {
         display: flex;
         align-items: center;
         gap: 8px;
       }
-
       .args-row input[type="number"] {
         width: 70px;
       }
-
       .args-row .muted {
         margin-left: 6px;
         font-size: 12px;
         color: #777;
       }
-
       .left {
         grid-area: left;
       }
@@ -152,7 +148,6 @@
       .right {
         grid-area: right;
       }
-
       .site-footer {
         position: fixed;
         right: 12px;
@@ -165,14 +160,10 @@
         color: #555;
         z-index: 9999;
       }
-
       @media (max-width: 1200px) {
         body {
           grid-template-columns: 430px 1fr;
-          grid-template-areas:
-            "left mid"
-            "left mid"
-            "right right";
+          grid-template-areas: "left mid" "left mid" "right right";
         }
         .right {
           grid-column: 1 / -1;
@@ -181,38 +172,28 @@
           height: 60vh;
         }
       }
-
       @media (max-width: 768px) and (min-width: 576.02px) {
         .mid {
           display: none;
         }
-
         .left {
           display: block;
         }
-
         body {
           grid-template-columns: 1fr;
-          grid-template-areas:
-            "left"
-            "right";
+          grid-template-areas: "left" "right";
         }
       }
-
       @media (max-width: 576px) {
         .mid {
           display: block;
         }
-
         .left {
           display: none;
         }
-
         body {
           grid-template-columns: 1fr;
-          grid-template-areas:
-            "right"
-            "mid";
+          grid-template-areas: "right" "mid";
         }
       }
     </style>
@@ -221,7 +202,6 @@
     <!-- LEFT: PRESETS -->
     <div class="col left stack">
       <h2>Presets</h2>
-
       <div class="card stack">
         <div class="grid-2">
           <div class="stack">
@@ -291,10 +271,7 @@
               <option value="sash">sash</option>
             </select>
           </div>
-
-          <div id="argBox" class="stack">
-            <!-- dynamic args will be inserted here -->
-          </div>
+          <div id="argBox" class="stack"><!-- dynamic args --></div>
         </div>
 
         <div class="bar">
@@ -339,6 +316,9 @@
         preview = $("#preview"),
         live = $("#live");
 
+      // live always on (still keeps checkbox for UI)
+      const liveAlways = true;
+
       // --- fields
       const team = $("#team"),
         player = $("#player"),
@@ -354,17 +334,17 @@
       const patternSel = $("#pattern"),
         argBox = $("#argBox");
 
-      // sync color picker <-> text
-      const linkColor = (textEl, pickEl) => {
-        pickEl.addEventListener("input", () => (textEl.value = pickEl.value));
-        textEl.addEventListener("input", () => {
-          if (/^#[0-9a-fA-F]{6}$/.test(textEl.value))
-            pickEl.value = textEl.value;
-        });
-      };
-      linkColor(primary, primaryPick);
-      linkColor(secondary, secondaryPick);
-      linkColor(patterncolor, patterncolorPick);
+      // debounce helper
+      function debounce(fn, ms = 80) {
+        let t;
+        return (...args) => {
+          clearTimeout(t);
+          t = setTimeout(() => fn(...args), ms);
+        };
+      }
+
+      // guard to avoid form<->editor infinite loop
+      let updating = null; // null | 'form' | 'editor'
 
       // Pattern args UI
       function renderArgInputs() {
@@ -374,31 +354,53 @@
 
         if (value === "stripes" || value === "hoops") {
           argBox.innerHTML = `
-          <label>Args <span>| ${value}(count, thickness)</span></label>
-          <div class="row grid-2">
-            <input id="argCount" type="number" min="1" max="50" value="11" title="count">
-            <input id="argThickness" type="number" min="2" max="120" value="22" title="thickness (px)">
-          </div>
-        `;
+            <label>Args <span>| ${value}(count, thickness)</span></label>
+            <div class="row grid-2">
+              <input id="argCount" type="number" min="1" max="50" value="11" title="count">
+              <input id="argThickness" type="number" min="2" max="120" value="22" title="thickness (px)">
+            </div>`;
         } else if (value === "sash") {
           argBox.innerHTML = `
-          <label>Args <span>| sash(angle, width)</span></label>
-          <div class="row grid-2">
-            <input id="argAngle" type="number" min="0" max="85" value="30" title="angle (deg)">
-            <input id="argWidth" type="number" min="10" max="200" value="80" title="width (px)">
-          </div>
-        `;
+            <label>Args <span>| sash(angle, width)</span></label>
+            <div class="row grid-2">
+              <input id="argAngle" type="number" min="0" max="85" value="30" title="angle (deg)">
+              <input id="argWidth" type="number" min="10" max="200" value="80" title="width (px)">
+            </div>`;
         }
+        // wire inputs live
+        argBox.querySelectorAll("input").forEach((el) => {
+          el.addEventListener("input", () => {
+            if (liveAlways || live.checked) applyPresetToDSL();
+          });
+        });
       }
       patternSel.addEventListener("change", () => {
         renderArgInputs();
-        if ($("#live").checked) applyPresetToDSL();
+        if (liveAlways || live.checked) applyPresetToDSL();
       });
       renderArgInputs();
 
+      // sync color picker <-> text with live apply
+      const linkColor = (textEl, pickEl) => {
+        const sync = () => {
+          if (liveAlways || live.checked) applyPresetToDSL();
+        };
+        pickEl.addEventListener("input", () => {
+          textEl.value = pickEl.value;
+          sync();
+        });
+        textEl.addEventListener("input", () => {
+          if (/^#[0-9a-fA-F]{6}$/.test(textEl.value))
+            pickEl.value = textEl.value;
+          sync();
+        });
+      };
+      linkColor(primary, primaryPick);
+      linkColor(secondary, secondaryPick);
+      linkColor(patterncolor, patterncolorPick);
+
       // Build DSL from the preset form
       function hex6(s) {
-        // accept #RGB or #RRGGBB and normalize to upper
         if (!s) return s;
         s = s.trim();
         if (/^#[0-9a-fA-F]{3}$/.test(s)) {
@@ -407,11 +409,18 @@
         return s.toUpperCase();
       }
 
+      function escapeStr(s) {
+        return s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+      }
+      function clamp(n, lo, hi) {
+        return Math.max(lo, Math.min(hi, n));
+      }
+
       function buildDSLFromForm() {
         const parts = [];
         parts.push("jersey {");
 
-        // sponsor
+        // sponsor (optional)
         if (sponsor && sponsor.value.trim())
           parts.push(`  sponsor: "${escapeStr(sponsor.value.trim())}";`);
 
@@ -440,17 +449,17 @@
         const p = patternSel.value;
         if (p) {
           if (p === "stripes" || p === "hoops") {
-            const c = clamp(parseInt($("#argCount").value || "7", 10), 1, 50);
+            const c = clamp(parseInt($("#argCount")?.value || "7", 10), 1, 50);
             const t = clamp(
-              parseInt($("#argThickness").value || "18", 10),
+              parseInt($("#argThickness")?.value || "18", 10),
               2,
               120
             );
             parts.push(`  pattern: ${p}(${c},${t});`);
           } else if (p === "sash") {
-            const a = clamp(parseInt($("#argAngle").value || "30", 10), 0, 85);
+            const a = clamp(parseInt($("#argAngle")?.value || "30", 10), 0, 85);
             const w = clamp(
-              parseInt($("#argWidth").value || "80", 10),
+              parseInt($("#argWidth")?.value || "80", 10),
               10,
               200
             );
@@ -462,22 +471,114 @@
         return parts.join("\n");
       }
 
-      function escapeStr(s) {
-        return s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+      // Mini parser to sync Editor -> Presets
+      function parseDSL(code) {
+        const getStr = (key) =>
+          (code.match(new RegExp(key + `\\s*:\\s*"(.*?)"\\s*;`, "i")) ||
+            [])[1] ?? null;
+        const getHex = (key) =>
+          (code.match(
+            new RegExp(key + `\\s*:\\s*(#[0-9a-fA-F]{3,6})\\s*;`, "i")
+          ) || [])[1] ?? null;
+        const getInt = (key) => {
+          const m = code.match(new RegExp(key + `\\s*:\\s*(\\d+)\\s*;`, "i"));
+          return m ? parseInt(m[1], 10) : null;
+        };
+        const getPattern = () => {
+          const m1 = code.match(
+            /pattern\s*:\s*(stripes|hoops)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*;/i
+          );
+          if (m1)
+            return {
+              kind: m1[1].toLowerCase(),
+              count: +m1[2],
+              thickness: +m1[3],
+            };
+          const m2 = code.match(
+            /pattern\s*:\s*sash\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*;/i
+          );
+          if (m2) return { kind: "sash", angle: +m2[1], width: +m2[2] };
+          return { kind: "" };
+        };
+        return {
+          team: getStr("team"),
+          player: getStr("player"),
+          sponsor: getStr("sponsor"),
+          font: getStr("font"),
+          number: getInt("number"),
+          primary: getHex("primary"),
+          secondary: getHex("secondary"),
+          patterncolor: getHex("patterncolor"),
+          pattern: getPattern(),
+        };
       }
-      function clamp(n, lo, hi) {
-        return Math.max(lo, Math.min(hi, n));
+
+      function setFormFromAST(ast) {
+        if (ast.team !== null) team.value = ast.team;
+        if (ast.player !== null) player.value = ast.player;
+        if (ast.sponsor !== null && $("#sponsor"))
+          $("#sponsor").value = ast.sponsor;
+        if (ast.font !== null) font.value = ast.font;
+        if (Number.isInteger(ast.number)) number.value = String(ast.number);
+
+        if (ast.primary) {
+          primary.value = hex6(ast.primary);
+          primaryPick.value = hex6(ast.primary);
+        }
+        if (ast.secondary) {
+          secondary.value = hex6(ast.secondary);
+          secondaryPick.value = hex6(ast.secondary);
+        }
+        if (ast.patterncolor) {
+          patterncolor.value = hex6(ast.patterncolor);
+          patterncolorPick.value = hex6(ast.patterncolor);
+        }
+
+        patternSel.value = ast.pattern.kind || "";
+        renderArgInputs();
+        if (ast.pattern.kind === "stripes" || ast.pattern.kind === "hoops") {
+          $("#argCount") &&
+            ($("#argCount").value = ast.pattern.count ?? $("#argCount").value);
+          $("#argThickness") &&
+            ($("#argThickness").value =
+              ast.pattern.thickness ?? $("#argThickness").value);
+        } else if (ast.pattern.kind === "sash") {
+          $("#argAngle") &&
+            ($("#argAngle").value = ast.pattern.angle ?? $("#argAngle").value);
+          $("#argWidth") &&
+            ($("#argWidth").value = ast.pattern.width ?? $("#argWidth").value);
+        }
       }
 
       function applyPresetToDSL() {
+        updating = "form";
         const code = buildDSLFromForm();
         src.value = code;
-        if (live.checked) tryRender();
+        tryRender();
+        updating = null;
       }
 
-      $("#applyPreset").onclick = applyPresetToDSL;
+      const editorToForm = debounce(() => {
+        if (updating) return;
+        updating = "editor";
+        const ast = parseDSL(src.value || "");
+        setFormFromAST(ast);
+        tryRender();
+        updating = null;
+      }, 80);
 
-      // Playground actions
+      // wire generic preset inputs
+      ["#team", "#player", "#font", "#sponsor", "#number"].forEach((sel) => {
+        const el = document.querySelector(sel);
+        if (el)
+          el.addEventListener("input", () => {
+            if (liveAlways || live.checked) applyPresetToDSL();
+          });
+      });
+
+      $("#applyPreset").onclick = applyPresetToDSL;
+      $("#renderBtn").onclick = () => tryRender();
+
       const EXAMPLE = `jersey {
   team: "Spartan FC";
   primary: #ec2c29;
@@ -492,12 +593,11 @@
 
       $("#exampleBtn").onclick = () => {
         src.value = EXAMPLE;
-        tryRender();
+        editorToForm();
       };
-      $("#renderBtn").onclick = () => tryRender();
-      src.addEventListener("input", () => {
-        if (live.checked) tryRender();
-      });
+
+      // Editor input -> Presets + Preview
+      src.addEventListener("input", editorToForm);
 
       function tryRender() {
         err.textContent = "";
@@ -530,10 +630,13 @@
         a.click();
       };
 
-      // initial load: preset -> DSL -> render
+      // initial load: preset -> DSL -> render (no loop)
+      updating = "form";
       src.value = buildDSLFromForm();
       tryRender();
+      updating = null;
     </script>
+
     <div class="site-footer">
       © 2025 Ben Nguyen — Procedural Jersey Generator
     </div>
