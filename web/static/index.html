@@ -3,72 +3,474 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Jersey DSL – Playground</title>
+    <title>Jersey DSL – Playground | by Ben Nguyen</title>
     <style>
+      :root {
+        --gap: 12px;
+      }
+      * {
+        box-sizing: border-box;
+      }
       body {
         font-family: system-ui, Arial, sans-serif;
         margin: 0;
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 460px 390px 1fr; /* Presets | Editor | Preview */
+        grid-template-areas: "left mid right";
+        gap: 0;
         min-height: 100vh;
       }
-      .pane {
+      .col {
         padding: 16px;
+      }
+      h2 {
+        margin: 8px 0 12px;
+      }
+      .stack {
+        display: grid;
+        gap: var(--gap);
+        align-content: start;
+      }
+      .card {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 12px;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      label {
+        font-size: 13px;
+        color: #444;
+      }
+      input[type="text"],
+      input[type="number"],
+      select {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        min-width: 120px;
+        font-size: 14px;
+      }
+      input[type="color"] {
+        width: 48px;
+        height: 36px;
+        padding: 0;
+        border: none;
+        background: transparent;
       }
       textarea {
         width: 100%;
-        height: 70vh;
+        height: 60vh;
         font-family: ui-monospace, Consolas, monospace;
         font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding: 10px;
       }
       .bar {
         display: flex;
         gap: 8px;
         align-items: center;
-        margin: 8px 0;
+        flex-wrap: wrap;
+      }
+      button {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #999;
+        background: #fafafa;
+        cursor: pointer;
+      }
+      button.primary {
+        background: #0d6efd;
+        color: #fff;
+        border-color: #0d6efd;
       }
       .error {
         color: #b00020;
         white-space: pre-wrap;
+        min-height: 20px;
+      }
+      .right {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
       }
       .preview {
+        flex: 1;
         border: 1px solid #ccc;
-        height: 80vh;
+        border-radius: 10px;
         overflow: auto;
         background: #fff;
+        min-height: 0;
       }
-      button {
-        padding: 8px 12px;
-        cursor: pointer;
+      .download-bar {
+        margin-top: 10px;
+        text-align: center;
+        padding: 8px 0;
+      }
+      .muted {
+        color: #777;
+        font-size: 12px;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .hidden {
+        display: none;
+      }
+
+      .args-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .args-row input[type="number"] {
+        width: 70px;
+      }
+
+      .args-row .muted {
+        margin-left: 6px;
+        font-size: 12px;
+        color: #777;
+      }
+
+      .left {
+        grid-area: left;
+      }
+      .mid {
+        grid-area: mid;
+      }
+      .right {
+        grid-area: right;
+      }
+
+      .site-footer {
+        position: fixed;
+        right: 12px;
+        bottom: 8px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 12px;
+        color: #555;
+        z-index: 9999;
+      }
+
+      @media (max-width: 1200px) {
+        body {
+          grid-template-columns: 430px 1fr;
+          grid-template-areas:
+            "left mid"
+            "left mid"
+            "right right";
+        }
+        .right {
+          grid-column: 1 / -1;
+        }
+        .preview {
+          height: 60vh;
+        }
+      }
+
+      @media (max-width: 768px) and (min-width: 576.02px) {
+        .mid {
+          display: none;
+        }
+
+        .left {
+          display: block;
+        }
+
+        body {
+          grid-template-columns: 1fr;
+          grid-template-areas:
+            "left"
+            "right";
+        }
+      }
+
+      @media (max-width: 576px) {
+        .mid {
+          display: block;
+        }
+
+        .left {
+          display: none;
+        }
+
+        body {
+          grid-template-columns: 1fr;
+          grid-template-areas:
+            "right"
+            "mid";
+        }
       }
     </style>
   </head>
   <body>
-    <div class="pane">
-      <h2>Jersey DSL – Editor</h2>
-      <div class="bar">
-        <button id="renderBtn">Render</button>
-        <button id="exampleBtn">Load example</button>
-        <label><input type="checkbox" id="live" checked /> Live preview</label>
+    <!-- LEFT: PRESETS -->
+    <div class="col left stack">
+      <h2>Presets</h2>
+
+      <div class="card stack">
+        <div class="grid-2">
+          <div class="stack">
+            <label>Team</label>
+            <input
+              id="team"
+              type="text"
+              placeholder="Spartan FC"
+              value="Spartan FC"
+            />
+          </div>
+          <div class="stack">
+            <label>Player</label>
+            <input id="player" type="text" placeholder="BEN" value="BEN" />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="stack">
+            <label>Number</label>
+            <input id="number" type="number" min="0" max="99" value="10" />
+          </div>
+          <div class="stack">
+            <label>Font</label>
+            <input id="font" type="text" placeholder="Arial" value="Arial" />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="stack">
+            <label>Primary</label>
+            <div class="row">
+              <input id="primary" type="text" value="#0033aa" />
+              <input id="primaryPick" type="color" value="#0033aa" />
+            </div>
+          </div>
+          <div class="stack">
+            <label>Secondary</label>
+            <div class="row">
+              <input id="secondary" type="text" value="#ffcc00" />
+              <input id="secondaryPick" type="color" value="#ffcc00" />
+            </div>
+          </div>
+        </div>
+
+        <div class="stack">
+          <label>Pattern color (optional)</label>
+          <div class="row">
+            <input id="patterncolor" type="text" value="#ffffff" />
+            <input id="patterncolorPick" type="color" value="#ffffff" />
+          </div>
+        </div>
+
+        <hr />
+
+        <div class="grid-2">
+          <div class="stack">
+            <label>Pattern</label>
+            <select id="pattern">
+              <option value="">(none)</option>
+              <option value="stripes" selected>stripes</option>
+              <option value="hoops">hoops</option>
+              <option value="sash">sash</option>
+            </select>
+          </div>
+
+          <div id="argBox" class="stack">
+            <!-- dynamic args will be inserted here -->
+          </div>
+        </div>
+
+        <div class="bar">
+          <button id="applyPreset" class="primary">
+            Apply preset → Build DSL
+          </button>
+          <span class="muted">Adjust preset → Build DSL → Render</span>
+        </div>
       </div>
-      <textarea id="src"></textarea>
-      <div id="err" class="error"></div>
     </div>
-    <div class="pane">
+
+    <!-- MIDDLE: EDITOR -->
+    <div class="col mid stack">
+      <h2>Editor</h2>
+      <div class="card stack">
+        <div class="bar">
+          <button id="renderBtn">Render</button>
+          <button id="exampleBtn">Load example</button>
+          <label class="row" style="margin-left: auto">
+            <input type="checkbox" id="live" checked /> Live preview
+          </label>
+        </div>
+        <textarea id="src"></textarea>
+        <div id="err" class="error"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: PREVIEW -->
+    <div class="col right stack">
       <h2>Preview</h2>
       <div id="preview" class="preview"></div>
-      <div class="bar">
+      <div class="bar" style="margin-top: 10px">
         <button id="downloadSvg">Download SVG</button>
       </div>
     </div>
 
     <script>
       const $ = (s) => document.querySelector(s);
+
       const src = $("#src"),
         err = $("#err"),
         preview = $("#preview"),
         live = $("#live");
 
+      // --- fields
+      const team = $("#team"),
+        player = $("#player"),
+        number = $("#number"),
+        font = $("#font");
+      const primary = $("#primary"),
+        secondary = $("#secondary"),
+        patterncolor = $("#patterncolor");
+      const primaryPick = $("#primaryPick"),
+        secondaryPick = $("#secondaryPick"),
+        patterncolorPick = $("#patterncolorPick");
+      const patternSel = $("#pattern"),
+        argBox = $("#argBox");
+
+      // sync color picker <-> text
+      const linkColor = (textEl, pickEl) => {
+        pickEl.addEventListener("input", () => (textEl.value = pickEl.value));
+        textEl.addEventListener("input", () => {
+          if (/^#[0-9a-fA-F]{6}$/.test(textEl.value))
+            pickEl.value = textEl.value;
+        });
+      };
+      linkColor(primary, primaryPick);
+      linkColor(secondary, secondaryPick);
+      linkColor(patterncolor, patterncolorPick);
+
+      // Pattern args UI
+      function renderArgInputs() {
+        const value = patternSel.value;
+        argBox.innerHTML = "";
+        if (!value) return;
+
+        if (value === "stripes" || value === "hoops") {
+          argBox.innerHTML = `
+          <label>Args</label>
+          <div class="row">
+            <input id="argCount" type="number" min="1" max="50" value="7" title="count">
+            <input id="argThickness" type="number" min="2" max="120" value="18" title="thickness (px)">
+          </div>
+          <span class="muted">${value}(count, thickness)</span>
+        `;
+        } else if (value === "sash") {
+          argBox.innerHTML = `
+          <label>Args</label>
+          <div class="row">
+            <input id="argAngle" type="number" min="0" max="85" value="30" title="angle (deg)">
+            <input id="argWidth" type="number" min="10" max="200" value="80" title="width (px)">
+          </div>
+          <span class="muted">sash(angle, width)</span>
+        `;
+        }
+      }
+      patternSel.addEventListener("change", () => {
+        renderArgInputs();
+        if ($("#live").checked) applyPresetToDSL();
+      });
+      renderArgInputs();
+
+      // Build DSL from the preset form
+      function hex6(s) {
+        // accept #RGB or #RRGGBB and normalize to upper
+        if (!s) return s;
+        s = s.trim();
+        if (/^#[0-9a-fA-F]{3}$/.test(s)) {
+          return "#" + s[1] + s[1] + s[2] + s[2] + s[3] + s[3];
+        }
+        return s.toUpperCase();
+      }
+
+      function buildDSLFromForm() {
+        const parts = [];
+        parts.push("jersey {");
+
+        // team
+        if (team.value.trim())
+          parts.push(`  team: "${escapeStr(team.value.trim())}";`);
+
+        // colors
+        const prim = hex6(primary.value || "#0033AA");
+        const sec = hex6(secondary.value || "#FFCC00");
+        parts.push(`  primary: ${prim};`);
+        parts.push(`  secondary: ${sec};`);
+
+        const patcol = patterncolor.value.trim();
+        if (patcol) parts.push(`  patterncolor: ${hex6(patcol)};`);
+
+        // player/number/font
+        if (player.value.trim())
+          parts.push(`  player: "${escapeStr(player.value.trim())}";`);
+        const num = clamp(parseInt(number.value || "10", 10), 0, 99);
+        parts.push(`  number: ${isNaN(num) ? 10 : num};`);
+        if (font.value.trim())
+          parts.push(`  font: "${escapeStr(font.value.trim())}";`);
+
+        // pattern
+        const p = patternSel.value;
+        if (p) {
+          if (p === "stripes" || p === "hoops") {
+            const c = clamp(parseInt($("#argCount").value || "7", 10), 1, 50);
+            const t = clamp(
+              parseInt($("#argThickness").value || "18", 10),
+              2,
+              120
+            );
+            parts.push(`  pattern: ${p}(${c},${t});`);
+          } else if (p === "sash") {
+            const a = clamp(parseInt($("#argAngle").value || "30", 10), 0, 85);
+            const w = clamp(
+              parseInt($("#argWidth").value || "80", 10),
+              10,
+              200
+            );
+            parts.push(`  pattern: sash(${a},${w});`);
+          }
+        }
+
+        parts.push("}");
+        return parts.join("\n");
+      }
+
+      function escapeStr(s) {
+        return s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+      }
+      function clamp(n, lo, hi) {
+        return Math.max(lo, Math.min(hi, n));
+      }
+
+      function applyPresetToDSL() {
+        const code = buildDSLFromForm();
+        src.value = code;
+        if (live.checked) tryRender();
+      }
+
+      $("#applyPreset").onclick = applyPresetToDSL;
+
+      // Playground actions
       const EXAMPLE = `jersey {
   team: "Spartan FC";
   primary: #0033aa;
@@ -112,10 +514,6 @@
           .catch((e) => (err.textContent = String(e)));
       }
 
-      // preload example
-      src.value = EXAMPLE;
-      tryRender();
-
       $("#downloadSvg").onclick = () => {
         const url = preview.dataset.url;
         if (!url) return;
@@ -124,6 +522,13 @@
         a.download = "jersey.svg";
         a.click();
       };
+
+      // initial load: preset -> DSL -> render
+      src.value = buildDSLFromForm();
+      tryRender();
     </script>
+    <div class="site-footer">
+      © 2025 Ben Nguyen — Procedural Jersey Generator
+    </div>
   </body>
 </html>
