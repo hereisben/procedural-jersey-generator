@@ -81,7 +81,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         f'    {base_fill}\n'
         f'    {pattern}\n'
         f'    {outlines}\n'
-        f'    <g clip-path="url(#jerseyClip)">\n'   # 👈 new clip group for text
+        f'    <g clip-path="url(#jerseyClip)">\n'   
         f'      {player}\n'
         f'      {team}\n'
         f'      {sponsor}\n'

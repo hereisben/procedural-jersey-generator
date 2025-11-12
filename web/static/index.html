@@ -245,8 +245,8 @@
             <input id="number" type="number" min="0" max="99" value="10" />
           </div>
           <div class="stack">
-            <label>Font</label>
-            <input id="font" type="text" placeholder="Arial" value="Arial" />
+            <label>Sponsor</label>
+            <input id="sponsor" type="text" placeholder="SJSU" value="SJSU" />
           </div>
         </div>
 
@@ -273,6 +273,10 @@
             <input id="patterncolor" type="text" value="#000000" />
             <input id="patterncolorPick" type="color" value="#000000" />
           </div>
+        </div>
+        <div class="stack">
+          <label>Font</label>
+          <input id="font" type="text" placeholder="Arial" value="Arial" />
         </div>
 
         <hr />
@@ -339,7 +343,8 @@
       const team = $("#team"),
         player = $("#player"),
         number = $("#number"),
-        font = $("#font");
+        font = $("#font"),
+        sponsor = $("#sponsor");
       const primary = $("#primary"),
         secondary = $("#secondary"),
         patterncolor = $("#patterncolor");
@@ -369,21 +374,19 @@
 
         if (value === "stripes" || value === "hoops") {
           argBox.innerHTML = `
-          <label>Args</label>
-          <div class="row">
+          <label>Args <span>| ${value}(count, thickness)</span></label>
+          <div class="row grid-2">
             <input id="argCount" type="number" min="1" max="50" value="11" title="count">
             <input id="argThickness" type="number" min="2" max="120" value="22" title="thickness (px)">
           </div>
-          <span class="muted">${value}(count, thickness)</span>
         `;
         } else if (value === "sash") {
           argBox.innerHTML = `
-          <label>Args</label>
-          <div class="row">
+          <label>Args <span>| sash(angle, width)</span></label>
+          <div class="row grid-2">
             <input id="argAngle" type="number" min="0" max="85" value="30" title="angle (deg)">
             <input id="argWidth" type="number" min="10" max="200" value="80" title="width (px)">
           </div>
-          <span class="muted">sash(angle, width)</span>
         `;
         }
       }
@@ -407,6 +410,10 @@
       function buildDSLFromForm() {
         const parts = [];
         parts.push("jersey {");
+
+        // sponsor
+        if (sponsor && sponsor.value.trim())
+          parts.push(`  sponsor: "${escapeStr(sponsor.value.trim())}";`);
 
         // team
         if (team.value.trim())
