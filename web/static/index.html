@@ -278,7 +278,7 @@
           <button style="display: none" id="applyPreset" class="primary">
             Apply preset → Build DSL
           </button>
-          <p class="muted">Adjust preset → Build DSL → Render</p>
+          <p class="muted">Adjust presets → Watch the jersey update live</p>
         </div>
       </div>
     </div>
@@ -288,8 +288,8 @@
       <h2>Editor</h2>
       <div class="card stack">
         <div class="bar">
-          <button id="renderBtn">Render</button>
-          <button id="exampleBtn">Load example</button>
+          <button style="display: none" id="renderBtn">Render</button>
+          <button class="primary" id="exampleBtn">Load example</button>
         </div>
         <textarea id="src"></textarea>
         <div id="err" class="error"></div>
@@ -301,7 +301,7 @@
       <h2>Preview</h2>
       <div id="preview" class="preview"></div>
       <div class="bar" style="margin-top: 10px">
-        <button id="downloadSvg">Download SVG</button>
+        <button class="primary" id="downloadSvg">Download SVG</button>
       </div>
     </div>
 
