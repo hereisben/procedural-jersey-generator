@@ -78,6 +78,8 @@ class Parser:
             return self._parse_color(kind="primary")
         if tok.type == "SECONDARY":
             return self._parse_color(kind="secondary")
+        if tok.type == "TERTIARY":
+            return self._parse_color(kind="tertiary")
         if tok.type == "NUMBER":
             return self._parse_number()
         if tok.type == "PLAYER":
@@ -107,6 +109,8 @@ class Parser:
             self._expect("PRIMARY", "")
         elif kind == "secondary":
             self._expect("SECONDARY", "")
+        elif kind == "tertiary":
+            self._expect("TERTIARY", "")
         elif kind == "patterncolor":
             self._expect("PATTERNCOLOR", "")
         else:

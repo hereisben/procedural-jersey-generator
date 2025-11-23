@@ -14,6 +14,7 @@ class JerseySpec:
     team: Optional[str] = None
     primary: Optional[str] = None
     secondary: Optional[str] = None
+    tertiary: Optional[str] = None
     patterncolor: Optional[str] = None
     number: Optional[int] = None
     player: Optional[str] = None
@@ -39,9 +40,9 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
             spec.team = s.name.strip()
 
         elif isinstance(s, ColorNode):
-            # allow: primary | secondary | patterncolor
+            # allow: primary | secondary | tertiary | patterncolor
             key = s.kind
-            if key not in ("primary", "secondary", "patterncolor"):
+            if key not in ("primary", "secondary", "tertiary", "patterncolor"):
                 raise SemanticError(f"Unknown color kind: {key}")
             _check_dup(key, seen)
             setattr(spec, key, _hex6(s.value))
@@ -75,7 +76,7 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
             raise SemanticError(f"Unknown statement: {type(s).__name__}")
 
     # required
-    missing = [k for k in ("primary", "secondary") if getattr(spec, k) is None]
+    missing = [k for k in ("primary", "secondary", "tertiary") if getattr(spec, k) is None]
     if missing:
         raise SemanticError(f"Missing required field(s): {', '.join(missing)}")
 

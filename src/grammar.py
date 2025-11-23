@@ -4,7 +4,7 @@ DeclList       ::= { Decl } ;
 Decl           ::= TeamDecl | ColorDecl | PatternDecl | NumberDecl | PlayerDecl | SponsorDecl | FontDecl ;
 
 TeamDecl       ::= "team"     ":" STRING ";" ;
-ColorDecl      ::= ("primary" | "secondary") ":" COLOR ";" ;
+ColorDecl      ::= ("primary" | "secondary" | "tertiary") ":" COLOR ";" ;
 PatternDecl    ::= "pattern"  ":" PatternExpr ";" ;
 NumberDecl     ::= "number"   ":" INT ";" ;
 PlayerDecl     ::= "player"   ":" STRING ";" ;

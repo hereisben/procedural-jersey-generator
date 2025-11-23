@@ -234,24 +234,32 @@
           <div class="stack">
             <label>Primary</label>
             <div class="row">
-              <input id="primary" type="text" value="#ec2c29" />
-              <input id="primaryPick" type="color" value="#ec2c29" />
+              <input id="primary" type="text" value="#E5A823" />
+              <input id="primaryPick" type="color" value="#E5A823" />
             </div>
           </div>
           <div class="stack">
             <label>Secondary</label>
             <div class="row">
-              <input id="secondary" type="text" value="#ffffff" />
-              <input id="secondaryPick" type="color" value="#ffffff" />
+              <input id="secondary" type="text" value="#0055A2" />
+              <input id="secondaryPick" type="color" value="#0055A2" />
             </div>
           </div>
         </div>
-
-        <div class="stack">
-          <label>Pattern color (optional)</label>
-          <div class="row">
-            <input id="patterncolor" type="text" value="#000000" />
-            <input id="patterncolorPick" type="color" value="#000000" />
+        <div class="grid-2">
+          <div class="stack">
+            <label>Tertiary</label>
+            <div class="row">
+              <input id="tertiary" type="text" value="#ffffff" />
+              <input id="tertiaryPick" type="color" value="#ffffff" />
+            </div>
+          </div>
+          <div class="stack">
+            <label>Pattern color (optional)</label>
+            <div class="row">
+              <input id="patterncolor" type="text" value="#0055A2" />
+              <input id="patterncolorPick" type="color" value="#0055A2" />
+            </div>
           </div>
         </div>
         <div class="stack">
@@ -324,9 +332,11 @@
         sponsor = $("#sponsor");
       const primary = $("#primary"),
         secondary = $("#secondary"),
+        tertiary = $("#tertiary"),
         patterncolor = $("#patterncolor");
       const primaryPick = $("#primaryPick"),
         secondaryPick = $("#secondaryPick"),
+        tertiaryPick = $("#tertiaryPick"),
         patterncolorPick = $("#patterncolorPick");
       const patternSel = $("#pattern"),
         argBox = $("#argBox");
@@ -349,11 +359,18 @@
         argBox.innerHTML = "";
         if (!value) return;
 
-        if (value === "stripes" || value === "hoops") {
+        if (value === "stripes") {
           argBox.innerHTML = `
             <label>Args <span>| ${value}(count, thickness)</span></label>
             <div class="row grid-2">
-              <input id="argCount" type="number" min="1" max="50" value="11" title="count">
+              <input id="argCount" type="number" min="1" max="50" value="7" title="count">
+              <input id="argThickness" type="number" min="2" max="120" value="22" title="thickness (px)">
+            </div>`;
+        } else if (value === "hoops") {
+          argBox.innerHTML = `
+            <label>Args <span>| ${value}(count, thickness)</span></label>
+            <div class="row grid-2">
+              <input id="argCount" type="number" min="1" max="50" value="9" title="count">
               <input id="argThickness" type="number" min="2" max="120" value="22" title="thickness (px)">
             </div>`;
         } else if (value === "sash") {
@@ -394,6 +411,7 @@
       };
       linkColor(primary, primaryPick);
       linkColor(secondary, secondaryPick);
+      linkColor(tertiary, tertiaryPick);
       linkColor(patterncolor, patterncolorPick);
 
       // Build DSL from the preset form
@@ -428,8 +446,10 @@
         // colors
         const prim = hex6(primary.value || "#0033AA");
         const sec = hex6(secondary.value || "#FFCC00");
+        const ter = hex6(tertiary.value || "#000000");
         parts.push(`  primary: ${prim};`);
         parts.push(`  secondary: ${sec};`);
+        parts.push(`  tertiary: ${ter};`);
 
         const patcol = patterncolor.value.trim();
         if (patcol) parts.push(`  patterncolor: ${hex6(patcol)};`);
@@ -505,6 +525,7 @@
           number: getInt("number"),
           primary: getHex("primary"),
           secondary: getHex("secondary"),
+          tertiary: getHex("tertiary"),
           patterncolor: getHex("patterncolor"),
           pattern: getPattern(),
         };
@@ -525,6 +546,10 @@
         if (ast.secondary) {
           secondary.value = hex6(ast.secondary);
           secondaryPick.value = hex6(ast.secondary);
+        }
+        if (ast.tertiary) {
+          tertiary.value = hex6(ast.tertiary);
+          tertiaryPick.value = hex6(ast.tertiary);
         }
         if (ast.patterncolor) {
           patterncolor.value = hex6(ast.patterncolor);
@@ -578,14 +603,15 @@
 
       const EXAMPLE = `jersey {
   team: "Spartan FC";
-  primary: #ec2c29;
-  secondary: #ffffff;
-  patterncolor: #000000;
+  primary: #E5A823;
+  secondary: #0055A2;
+  tertiary: #ffffff;
+  patterncolor: #0055A2;
   player: "BEN";
   number: 23;
   sponsor: "SJSU";
   font: "Arial";
-  pattern: stripes(11,22);
+  pattern: stripes(7,22);
 }`;
 
       $("#exampleBtn").onclick = () => {

@@ -7,6 +7,7 @@ KEYWORDS = {
     "team": "TEAM",
     "primary": "PRIMARY",
     "secondary": "SECONDARY",
+    "tertiary": "TERTIARY",
     "patterncolor": "PATTERNCOLOR",
     "pattern": "PATTERN",
     "number": "NUMBER",
