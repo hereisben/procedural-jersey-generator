@@ -1,6 +1,9 @@
 # src/interpreter/svg.py
 from dataclasses import dataclass
 from ..semantic.checks import JerseySpec
+import base64
+from functools import lru_cache
+from pathlib import Path
 
 SVG_HEADER = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>"""
 W, H = 484, 342
@@ -24,9 +27,12 @@ FRONT_BODY_PATH = (
     "131.85528,19.171174 z"
 )
 
-FRONT_DECOR_PATH = (
-    "M 68.230168,202.7133 L 66.74401,202.04554 L 65.889571,204.66438 L 62.971263,216.84432 L 64.304094,227.24503 L 67.830638,235.92452 L 66.347275,225.34068 L 66.46241,217.06712 L 68.333908,208.36933 L 70.319926,202.92026 L 70.186062,203.97615 L 68.230168,202.7133 z "
-    "M 162.64098,202.50595 L 164.12713,201.83819 L 164.98157,204.45703 L 167.89988,216.63697 L 166.56705,227.03768 L 163.04051,235.71717 L 164.52387,225.13333 L 164.40873,216.85977 L 162.53724,208.16198 L 160.55122,202.71291 L 160.68508,203.7688 L 162.64098,202.50595 z "
+FRONT_LINE_PATH = (
+    "M 60.21875,177.4375 L 45.71875,326.75 L 52.59375,328.46875 L 66.75,177.4375 L 60.21875,177.4375 z M 163.5,177.4375 L 177.625,328.46875 L 184.53125,326.75 L 170.03125,177.4375 L 163.5,177.4375 z"
+)
+
+BACK_LINE_PATH = (
+    "M 422.67308,205.87298 L 393.15137,223.55065 L 430.27448,328.02568 L 415.07168,227.79329 L 422.84986,213.29761 L 422.67308,205.87298 M 307.94501,204.90071 L 337.46672,222.57838 L 300.34361,327.05341 L 315.54641,226.82102 L 307.76823,212.32534 L 307.94501,204.90071 z "
 )
 
 FRONT_SHORTS_PATH = (
@@ -119,7 +125,8 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     front_shorts = FRONT_SHORTS_PATH
     back_body    = BACK_BODY_PATH
     back_shorts  = BACK_SHORTS_PATH
-    front_decors = FRONT_DECOR_PATH
+    front_decors = FRONT_LINE_PATH
+    back_decors = BACK_LINE_PATH
     logo = LOGO_PATH
 
     # --- clipped pattern layer (mask to jersey shape) ---
@@ -148,6 +155,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     back_jersey_fill  = f'<path d="{back_body}"   fill="{prim}"/>\n'
 
     front_short_decor = f'<path d="{front_decors}" fill="{prim}"/>\n'
+    back_short_decor = f'<path d="{back_decors}" fill="{prim}"/>\n'
     logo_decor = f'<path d="{logo}" transform="scale(0.07) translate(1900, 700)" fill="#ffffff"/>\n'
 
     patcol = spec.patterncolor or "#FFFFFF"
@@ -200,7 +208,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         y=125,
         size=35,
         anchor="middle",
-        weight="bold",
+        weight="regular",
         fill=ter,
         font=spec.font,
     ) if spec.sponsor else ""
@@ -223,7 +231,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         y=45,
         size=10,
         anchor="middle",
-        weight="bold",
+        weight="regular",
         fill=ter,
         font=spec.font,
     ) if spec.sponsor else ""
@@ -234,7 +242,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         y=85,
         size=26,
         anchor="middle",
-        weight="bold",
+        weight="regular",
         fill=ter,
         font=spec.font,
         letter_spacing="2",
@@ -244,9 +252,9 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         str(spec.number),
         x=back_cx,
         y=155,
-        size=80,
+        size=75,
         anchor="middle",
-        weight="bold",
+        weight="regular",
         fill=ter,
         font=spec.font,
     )
@@ -255,9 +263,9 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         spec.team,
         x=back_cx,
         y=190,
-        size=20,
+        size=18,
         anchor="middle",
-        weight="bold",
+        weight="regular",
         fill=ter,
         font=spec.font,
     )
@@ -276,11 +284,14 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
 
     credit = _svg_text("© 2025 Ben Nguyen", x=W/2, y=590, size=14,
                    anchor="middle", weight="normal", fill="#eee", font=spec.font or "Arial")
+    
+    font_style_block = _font_block()
 
     return (
         f"{SVG_HEADER}\n"
         f'<svg xmlns="http://www.w3.org/2000/svg" '
         f'viewBox="0 0 {W} {H}" width="{W}" height="{H}">\n'
+        f'{font_style_block}\n' 
         f'  {meta}\n'
         f'  <rect x="0" y="0" width="{W}" height="{H}" fill="#fff"/>\n'
         f'  {defs}\n'
@@ -289,6 +300,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         f'    {front_shorts_fill}\n'
         f'    {front_short_decor}\n'
         f'    {back_shorts_fill}\n'
+        f'    {back_short_decor}\n'
         f'    {shorts_outlines}\n'
         f'    {front_jersey_fill}\n'
         f'    {back_jersey_fill}\n'
@@ -377,3 +389,22 @@ def _sash(angle: int, width: int, color: str) -> str:
         f'  <rect x="180" y="-100" width="{width}" height="{H}" fill="{color}" opacity="1"/>'
         f'</g>'
     )
+
+@lru_cache
+def _load_font_base64():
+    project_root = Path(__file__).resolve().parents[2]
+    fpath = project_root / "web" / "static" / "fonts" / "SportScholars-Outline.woff2"
+    return base64.b64encode(fpath.read_bytes()).decode("ascii")
+
+def _font_block():
+    font_b64 = _load_font_base64()
+    return f"""
+  <style>
+    @font-face {{
+      font-family: "Sport Scholars Outline";
+      src: url("data:font/woff2;base64,{font_b64}") format("woff2");
+      font-weight: normal;
+      font-style: normal;
+    }}
+  </style>
+"""

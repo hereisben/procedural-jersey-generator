@@ -3,6 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="./stylesheet.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Jersey+25&display=swap"
+      rel="stylesheet"
+    />
     <title>Jersey DSL – Playground | by Ben Nguyen</title>
     <style>
       :root {
@@ -12,7 +19,7 @@
         box-sizing: border-box;
       }
       body {
-        font-family: system-ui, Arial, sans-serif;
+        font-family: "Sport Scholars Outline", system-ui, Arial, sans-serif;
         margin: 0;
         display: grid;
         grid-template-columns: 460px 390px 1fr; /* Presets | Editor | Preview */
@@ -264,7 +271,12 @@
         </div>
         <div class="stack">
           <label>Font</label>
-          <input id="font" type="text" placeholder="Arial" value="Arial" />
+          <input
+            id="font"
+            type="text"
+            placeholder="Sport Scholars Outline"
+            value="Sport Scholars Outline"
+          />
         </div>
 
         <hr />
@@ -610,7 +622,7 @@
   player: "BEN";
   number: 23;
   sponsor: "SJSU";
-  font: "Arial";
+  font: "Sport Scholars Outline";
   pattern: stripes(7,22);
 }`;
 
