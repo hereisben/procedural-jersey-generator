@@ -386,7 +386,10 @@ def _sash(angle: int, width: int, color: str) -> str:
     cx, cy = W/2, H/2 + 40
     return (
         f'<g transform="translate({cx},{cy}) rotate({-abs(angle)}) translate({-cx}, {-cy})">'
-        f'  <rect x="180" y="-100" width="{width}" height="{H}" fill="{color}" opacity="1"/>'
+        f'  <rect x="180" y="-60" width="{width}" height="{H}" fill="{color}" opacity="1"/>'
+        f'</g>'
+        f'<g transform="translate({cx},{cy}) rotate({abs(angle)}) translate({-cx}, {-cy})">'
+        f'  <rect x="225" y="-60" width="{width}" height="{H}" fill="{color}" opacity="1"/>'
         f'</g>'
     )
 

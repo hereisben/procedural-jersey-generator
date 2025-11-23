@@ -71,15 +71,16 @@
         border: none;
         background: transparent;
       }
+
       textarea {
         width: 100%;
-        height: 60vh;
         font-family: ui-monospace, Consolas, monospace;
         font-size: 14px;
         border: 1px solid #ccc;
         border-radius: 10px;
         padding: 10px;
       }
+
       .bar {
         display: flex;
         gap: 8px;
@@ -167,6 +168,18 @@
         color: #555;
         z-index: 9999;
       }
+
+      #ai-suggestion-text {
+        font-size: 13px;
+        line-height: 1.5;
+        min-height: 100px;
+        background: #f7f7f7;
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        white-space: pre-wrap;
+        border: 1px solid #ddd;
+      }
+
       @media (max-width: 1200px) {
         body {
           grid-template-columns: 430px 1fr;
@@ -306,13 +319,49 @@
     <!-- MIDDLE: EDITOR -->
     <div class="col mid stack">
       <h2>Editor</h2>
+
+      <!-- DSL Editor -->
       <div class="card stack">
         <div class="bar">
           <button style="display: none" id="renderBtn">Render</button>
           <button class="primary" id="exampleBtn">Load example</button>
         </div>
-        <textarea id="src"></textarea>
+        <textarea id="src" rows="12"></textarea>
         <div id="err" class="error"></div>
+      </div>
+
+      <!-- AI Jersey Chat -->
+      <div class="card stack" id="ai-chat-panel">
+        <div class="bar" style="justify-content: space-between; width: 100%">
+          <h3 style="margin: 0">AI Jersey Chat</h3>
+          <span id="ai-status" class="muted"></span>
+        </div>
+
+        <div class="stack">
+          <label for="ai-message">Describe your jersey idea:</label>
+          <textarea
+            id="ai-message"
+            rows="3"
+            placeholder="Example: make a Juventus away kit with black stripes and gold accents"
+            style="width: 100%; margin: 0.5rem 0"
+          ></textarea>
+
+          <button
+            id="ai-generate-btn"
+            class="primary"
+            style="align-self: flex-start"
+          >
+            Generate from AI
+          </button>
+        </div>
+
+        <!-- Simple text suggestion instead of JSON + DSL previews -->
+        <div class="stack" style="margin-top: 1rem">
+          <label for="ai-suggestion-text" class="muted"
+            >AI suggestion summary:</label
+          >
+          <div id="ai-suggestion-text"></div>
+        </div>
       </div>
     </div>
 
@@ -670,6 +719,141 @@
       src.value = buildDSLFromForm();
       tryRender();
       updating = null;
+    </script>
+
+    <script>
+      // ---- AI Jersey Chat ----
+      const aiMessageEl = $("#ai-message");
+      const aiStatusEl = $("#ai-status");
+      const aiSuggestionTextEl = $("#ai-suggestion-text");
+      const aiBtnEl = $("#ai-generate-btn");
+
+      async function callAiChatJersey() {
+        const message = aiMessageEl.value.trim();
+
+        if (!message) {
+          aiStatusEl.textContent = "Please describe your jersey idea first.";
+          return;
+        }
+
+        aiStatusEl.textContent = "Thinking...";
+        aiBtnEl.disabled = true;
+        aiBtnEl.textContent = "Generating...";
+
+        // clear old suggestion
+        aiSuggestionTextEl.textContent = "";
+
+        try {
+          const res = await fetch("/api/ai/chat-jersey", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              prompt: message,
+              currentDsl: src.value || "",
+            }),
+          });
+
+          let data;
+          try {
+            data = await res.json();
+          } catch (e) {
+            throw new Error("Invalid JSON from server");
+          }
+
+          if (!data.ok) {
+            throw new Error(data.error || "AI could not generate a jersey.");
+          }
+
+          // Update editor & preview via DSL (already auto-synced)
+          if (data.dsl) {
+            src.value = data.dsl;
+            editorToForm();
+          }
+
+          // Build a single natural-language sentence for the user
+          if (data.spec) {
+            const s = data.spec;
+
+            // Team + player + sponsor
+            const parts = [];
+
+            if (s.team) {
+              parts.push(`AI created a jersey for ${s.team}`);
+            } else {
+              parts.push("AI created a new jersey");
+            }
+
+            if (s.player && s.number != null) {
+              parts.push(`featuring ${s.player} #${s.number}`);
+            } else if (s.player) {
+              parts.push(`featuring ${s.player}`);
+            }
+
+            if (s.sponsor) {
+              parts.push(`with ${s.sponsor} as the main sponsor`);
+            }
+
+            // Colors
+            const colorBits = [];
+            if (s.primary) {
+              colorBits.push(`primary color ${s.primary}`);
+            }
+            if (s.secondary) {
+              colorBits.push(`secondary color ${s.secondary}`);
+            }
+            if (s.tertiary) {
+              colorBits.push(`tertiary accent ${s.tertiary}`);
+            }
+            if (s.patternColor) {
+              colorBits.push(`pattern color ${s.patternColor}`);
+            }
+
+            if (colorBits.length > 0) {
+              parts.push("using " + colorBits.join(", "));
+            }
+
+            // Pattern
+            if (s.pattern && s.pattern.type) {
+              const argsText = Array.isArray(s.pattern.args)
+                ? s.pattern.args.join(", ")
+                : "";
+              if (argsText) {
+                parts.push(`and a ${s.pattern.type} pattern (${argsText})`);
+              } else {
+                parts.push(`and a ${s.pattern.type} pattern`);
+              }
+            }
+
+            // Font
+            if (s.font) {
+              parts.push(`set in the "${s.font}" font`);
+            }
+
+            let sentence = parts.join(", ");
+            if (!sentence.endsWith(".")) sentence += ".";
+
+            if (data.approximationNote) {
+              sentence += " " + data.approximationNote;
+            }
+
+            aiSuggestionTextEl.textContent = sentence;
+          } else {
+            aiSuggestionTextEl.textContent =
+              "AI generated a new jersey design and updated the editor.";
+          }
+
+          aiStatusEl.textContent = "Done ✔";
+        } catch (err) {
+          console.error(err);
+          aiStatusEl.textContent = "Error: " + err.message;
+          aiSuggestionTextEl.textContent = "";
+        } finally {
+          aiBtnEl.disabled = false;
+          aiBtnEl.textContent = "Generate from AI";
+        }
+      }
+
+      aiBtnEl.addEventListener("click", callAiChatJersey);
     </script>
 
     <div class="site-footer">
