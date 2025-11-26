@@ -35,7 +35,7 @@ def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
             lines.append(f"  pattern: {pattern_type}();")
 
     # 4. Optional fields
-    pattern_color = data.get("patternColor")
+    pattern_color = data.get("pattern_color") or data.get("secondary") or data.get("primary") or "#000000"
     if pattern_color:
         lines.append(f"  pattern_color: {pattern_color};")
 
