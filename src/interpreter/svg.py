@@ -194,8 +194,8 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         f'<path d="{FRONT_TRIM_BOTTOM_PATH}" fill="none" stroke="#111" stroke-width="1.5"/>\n'
         f'<path d="{BACK_TRIM_TOP_PATH}"     fill="none" stroke="#111" stroke-width="1.5"/>\n'
         f'<path d="{BACK_TRIM_BOTTOM_PATH}"  fill="none" stroke="#111" stroke-width="1.5"/>\n'
-        f'<path d="{FRONT_COLLAR_PATH}"      fill="white" stroke="{sec}" stroke-width="1.5"/>\n'
-        f'<path d="{BACK_COLLAR_PATH}"       fill="white" stroke="{sec}" stroke-width="1.5"/>\n'
+        f'<path d="{FRONT_COLLAR_PATH}"      fill="white" stroke="#111" stroke-width="1.5"/>\n'
+        f'<path d="{BACK_COLLAR_PATH}"       fill="white" stroke="#111" stroke-width="1.5"/>\n'
     )
 
     # --- text layers ---
