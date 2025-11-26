@@ -10,6 +10,10 @@ NumberDecl     ::= "number"   ":" INT ";" ;
 PlayerDecl     ::= "player"   ":" STRING ";" ;
 SponsorDecl    ::= "sponsor"  ":" STRING ";" ;
 FontDecl       ::= "font"     ":" STRING ";" ;
+PlayerSizeDecl   ::= "player_size" ":" INT ";" ;
+NumberSizeDecl   ::= "number_size" ":" INT ";" ;
+TeamSizeDecl   ::= "team_size" ":" INT ";" ;
+SponsorSizeDecl   ::= "sponsor_size" ":" INT ";" ;
 
 PatternExpr    ::= Ident "(" ArgList? ")" ;
 ArgList        ::= Arg { "," Arg } ;

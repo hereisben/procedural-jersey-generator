@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 from ..ast.nodes import (
     JerseyNode, TeamNode, ColorNode, NumberNode, PlayerNode,
-    SponsorNode, FontNode, PatternNode
+    SponsorNode, FontNode, PlayerSizeNode, NumberSizeNode, TeamSizeNode, SponsorSizeNode, PatternNode
 )
 
 @dataclass
@@ -88,10 +88,18 @@ class Parser:
             return self._parse_sponsor()
         if tok.type == "FONT":
             return self._parse_font()
+        if tok.type == "PLAYERSIZE":
+            return self._parse_player_size()
+        if tok.type == "NUMBERSIZE":
+            return self._parse_number_size()
+        if tok.type == "TEAMSIZE":
+            return self._parse_team_size()
+        if tok.type == "SPONSORSIZE":
+            return self._parse_sponsor_size()
         if tok.type == "PATTERN":
             return self._parse_pattern()
         if tok.type == "PATTERNCOLOR":
-            return self._parse_color(kind="patterncolor")
+            return self._parse_color(kind="pattern_color")
 
         raise ParserError(f"Unexpected token {tok.type} at line {tok.line}, col {tok.col}")
 
@@ -111,7 +119,7 @@ class Parser:
             self._expect("SECONDARY", "")
         elif kind == "tertiary":
             self._expect("TERTIARY", "")
-        elif kind == "patterncolor":
+        elif kind == "pattern_color":
             self._expect("PATTERNCOLOR", "")
         else:
             raise ParserError(f"Unknown color kind: {kind}")
@@ -155,6 +163,35 @@ class Parser:
         self._expect("SEMI", "after font")
         name = self._unquote(tok.value) if tok.type == "STRING" else tok.value
         return FontNode(name=name)
+    
+    # fontsize: INT
+    def _parse_player_size(self):
+        self._expect("PLAYERSIZE", "")
+        self._expect("COLON", "after 'player_size'")
+        n = int(self._match("INT", "for player_size").value)
+        self._expect("SEMI", "after player_size")
+        return PlayerSizeNode(value=n)
+    
+    def _parse_number_size(self):
+        self._expect("NUMBERSIZE", "")
+        self._expect("COLON", "after 'number_size'")
+        n = int(self._match("INT", "for number_size").value)
+        self._expect("SEMI", "after number_size")
+        return NumberSizeNode(value=n)
+    
+    def _parse_team_size(self):
+        self._expect("TEAMSIZE", "")
+        self._expect("COLON", "after 'team_size'")
+        n = int(self._match("INT", "for team_size").value)
+        self._expect("SEMI", "after team_size")
+        return TeamSizeNode(value=n)
+    
+    def _parse_sponsor_size(self):
+        self._expect("SPONSORSIZE", "")
+        self._expect("COLON", "after 'sponsor_size'")
+        n = int(self._match("INT", "for sponsor_size").value)
+        self._expect("SEMI", "after sponsor_size")
+        return SponsorSizeNode(value=n)
 
     # pattern: stripes(7,14);
     def _parse_pattern(self):

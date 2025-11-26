@@ -2,7 +2,9 @@
 from flask import Flask, request, jsonify
 from pathlib import Path
 import sys
-
+import os
+from groq import Groq
+import json
 
 
 # Allow import src.*
@@ -15,6 +17,69 @@ from src.parser.parser import Parser
 from src.semantic.checks import validate_jersey, SemanticError
 from src.interpreter.svg import render_svg, RenderOptions
 from src.interpreter.json_to_dsl import jersey_json_to_dsl
+from dotenv import load_dotenv
+load_dotenv()
+
+groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+if not groq_client.api_key:
+    raise RuntimeError("Missing GROQ_API_KEY in .env")
+
+AI_SYSTEM_PROMPT = """
+You are a soccer jersey design assistant.
+
+Your ONLY job:
+1. Read the user's natural language request for a jersey.
+2. Return ONE JSON object that follows EXACTLY this schema:
+
+{
+    "team": string,          // required
+    "player": string,        // required
+    "number": integer,       // required
+    "sponsor": string,       // required
+    "font": string,          // required
+    "primary": string,       // required, hex color like "#000000"
+    "secondary": string,     // required, hex color like "#FFFFFF"
+    "tertiary": string,      // required, hex accent color
+    "pattern_color": string,  // required, hex color for pattern
+    "player_size": integer,   // required, from 8 to 100, pick reasonable font size
+    "number_size": integer,   // required, from 8 to 100, pick reasonable font size
+    "team_size": integer,     // required, from 8 to 100, pick reasonable font size
+    "sponsor_size": integer,   // required, from 8 to 100, pick reasonable font size
+    "pattern": {
+        "type": string,        // one of: "stripes", "hoops", "sash", "solid"
+        "args": array          // numbers for pattern parameters, e.g. stripes(count, thickness) -> [9,18]
+},
+
+  "source": {
+    "fromText": boolean,
+    "fromImage": boolean,
+    "imageAnalysisConfidence": number
+  },
+
+  "approximationNote": string
+}
+
+Rules:
+- OUTPUT MUST BE VALID JSON, NO COMMENTS, NO EXTRA TEXT.
+- Use double quotes for all keys and string values.
+- All colors MUST be valid 7-character hex codes: "#RRGGBB".
+- If the user doesn't specify team name, pick a reasonable name.
+- If user doesn't specify sponsor, choose a short fake sponsor.
+- If user doesn't specify font, use "Sport Scholars Outline".
+
+Pattern rules:
+- "stripes": args = [count, thickness]
+- "hoops":   args = [count, thickness]
+- "sash":    args = [angleDegrees, widthPixels]
+- "solid":   args = []
+
+PLAYER NAME RULES:
+- If the user specifies a player, use that name.
+- If user DOES NOT specify a player, set player = "PLAYER".
+- Always return player in uppercase (e.g. "MESSI", "LEWANDOWSKI").
+
+Return ONLY the JSON object, nothing else.
+"""
 
 app = Flask(__name__)
 
@@ -29,13 +94,6 @@ def compile_dsl_to_svg(dsl_code: str) -> str:
     return compile_and_render(dsl_code)
 
 def fake_ai_suggest_jersey(message: str, image_path: str | None = None) -> dict:
-    """
-    Dummy AI: nhận message + image_path, trả về JSON jersey suggestion
-    theo spec của project.
-    Sau này chỉ cần thay thân hàm này bằng call OpenAI / model thật.
-    """
-    # Tạm thời ignore message + image_path,
-    # hard-code Juventus away kit như bạn đang làm.
     return {
         "team": "Juventus",
         "player": "VLAHOVIC",
@@ -49,7 +107,11 @@ def fake_ai_suggest_jersey(message: str, image_path: str | None = None) -> dict:
             "type": "stripes",
             "args": [9, 18],
         },
-        "patternColor": "#000000",
+        "pattern_color": "#000000",
+        "player_size": 26,
+        "number_size": 75,
+        "team_size": 18,
+        "sponsor_size": 35,
         "source": {
             "fromText": bool(message),
             "fromImage": bool(image_path),
@@ -60,6 +122,20 @@ def fake_ai_suggest_jersey(message: str, image_path: str | None = None) -> dict:
         ),
     }
 
+def real_ai_suggest_jersey(message: str) -> dict:
+    completion = groq_client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[
+            {"role": "system", "content": AI_SYSTEM_PROMPT},
+            {"role": "user", "content": message}
+        ]
+    )
+
+    raw = completion.choices[0].message.content
+    try:
+        return json.loads(raw)
+    except Exception as e:
+        raise RuntimeError(f"Groq JSON parse failed: {e}\nRaw: {raw}")
 
 
 @app.post("/api/render")
@@ -92,7 +168,12 @@ def ai_chat_jersey():
     if not prompt:
         return jsonify(ok=False, error="Missing prompt"), 400
 
-    ai_json = fake_ai_suggest_jersey(message=prompt, image_path=None)
+    try:
+        ai_json = real_ai_suggest_jersey(message=prompt)
+    except Exception as e:
+        # fallback
+        # ai_json = fake_ai_suggest_jersey(message=prompt, image_path=None)
+        return jsonify(ok=False, error=f"AI failed: {e}"), 500
 
     dsl_code = jersey_json_to_dsl(ai_json)
 
@@ -108,11 +189,12 @@ def ai_chat_jersey():
 
     return jsonify(
         ok=True,
-        spec=ai_json,  
+        spec=ai_json,
         dsl=dsl_code,
         svg=svg_xml,
         approximationNote=ai_json.get("approximationNote", ""),
     )
+
 
 
 

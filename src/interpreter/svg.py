@@ -118,7 +118,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     opts = opts or RenderOptions()
     prim = spec.primary or "#0033AA"
     sec  = spec.secondary or "#FFCC00"
-    ter = spec.tertiary or spec.patterncolor or "#000000"
+    ter = spec.tertiary or spec.pattern_color or "#000000"
 
     # --- jersey geometry (reusable) ---
     front_body   = FRONT_BODY_PATH
@@ -158,7 +158,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     back_short_decor = f'<path d="{back_decors}" fill="{prim}"/>\n'
     logo_decor = f'<path d="{logo}" transform="scale(0.07) translate(1900, 700)" fill="#ffffff"/>\n'
 
-    patcol = spec.patterncolor or "#FFFFFF"
+    patcol = spec.pattern_color or "#FFFFFF"
 
     front_jersey_pattern = (
         f'<g clip-path="url(#frontJerseyClip)">\n'
@@ -206,7 +206,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         spec.sponsor,
         x=front_cx,
         y=125,
-        size=35,
+        size=spec.sponsor_size,
         anchor="middle",
         weight="regular",
         fill=ter,
@@ -240,7 +240,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         spec.player,
         x=back_cx,
         y=85,
-        size=26,
+        size=spec.player_size,
         anchor="middle",
         weight="regular",
         fill=ter,
@@ -252,7 +252,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         str(spec.number),
         x=back_cx,
         y=155,
-        size=75,
+        size=spec.number_size,
         anchor="middle",
         weight="regular",
         fill=ter,
@@ -263,7 +263,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         spec.team,
         x=back_cx,
         y=190,
-        size=18,
+        size=spec.team_size,
         anchor="middle",
         weight="regular",
         fill=ter,

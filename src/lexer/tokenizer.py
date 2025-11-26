@@ -8,12 +8,16 @@ KEYWORDS = {
     "primary": "PRIMARY",
     "secondary": "SECONDARY",
     "tertiary": "TERTIARY",
-    "patterncolor": "PATTERNCOLOR",
+    "pattern_color": "PATTERNCOLOR",
     "pattern": "PATTERN",
     "number": "NUMBER",
     "player": "PLAYER",
     "sponsor": "SPONSOR",
     "font": "FONT",
+    "player_size": "PLAYERSIZE",
+    "number_size": "NUMBERSIZE",
+    "team_size": "TEAMSIZE",
+    "sponsor_size": "SPONSORSIZE"
 }
 
 SYMBOLS = {

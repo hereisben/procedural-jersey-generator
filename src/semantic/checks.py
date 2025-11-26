@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Optional, List, Dict, Tuple, Union
 from ..ast.nodes import (
     JerseyNode, TeamNode, ColorNode, NumberNode, PlayerNode,
-    SponsorNode, FontNode, PatternNode, Stmt
+    SponsorNode, FontNode, PlayerSizeNode, NumberSizeNode, TeamSizeNode, SponsorSizeNode, PatternNode, Stmt
 )
 
 class SemanticError(Exception):
@@ -15,11 +15,15 @@ class JerseySpec:
     primary: Optional[str] = None
     secondary: Optional[str] = None
     tertiary: Optional[str] = None
-    patterncolor: Optional[str] = None
+    pattern_color: Optional[str] = None
     number: Optional[int] = None
     player: Optional[str] = None
     sponsor: Optional[str] = None
     font: Optional[str] = None
+    player_size: Optional[int] = None
+    number_size: Optional[int] = None
+    team_size: Optional[int] = None
+    sponsor_size: Optional[int] = None
     pattern: Optional[Tuple[str, List[Union[int, str]]]] = None  # (ident, args)
 
 def _hex6(c: str) -> str:
@@ -40,9 +44,9 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
             spec.team = s.name.strip()
 
         elif isinstance(s, ColorNode):
-            # allow: primary | secondary | tertiary | patterncolor
+            # allow: primary | secondary | tertiary | pattern_color
             key = s.kind
-            if key not in ("primary", "secondary", "tertiary", "patterncolor"):
+            if key not in ("primary", "secondary", "tertiary", "pattern_color"):
                 raise SemanticError(f"Unknown color kind: {key}")
             _check_dup(key, seen)
             setattr(spec, key, _hex6(s.value))
@@ -65,6 +69,30 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
             _check_dup("font", seen)
             spec.font = s.name.strip()
 
+        elif isinstance(s, PlayerSizeNode):
+            _check_dup("player_size", seen)
+            if s.value < 8 or s.value > 100:
+                raise SemanticError("player_size: must be between 8 and 100")
+            spec.player_size = s.value
+
+        elif isinstance(s, NumberSizeNode):
+            _check_dup("number_size", seen)
+            if s.value < 8 or s.value > 100:
+                raise SemanticError("number_size: must be between 8 and 100")
+            spec.number_size = s.value
+
+        elif isinstance(s, TeamSizeNode):
+            _check_dup("team_size", seen)
+            if s.value < 8 or s.value > 100:
+                raise SemanticError("team_size: must be between 8 and 100")
+            spec.team_size = s.value
+
+        elif isinstance(s, SponsorSizeNode):
+            _check_dup("sponsor_size", seen)
+            if s.value < 8 or s.value > 100:
+                raise SemanticError("sponsor_size: must be between 8 and 100")
+            spec.sponsor_size = s.value
+
         elif isinstance(s, PatternNode):
             _check_dup("pattern", seen)
             ident = s.ident.strip()
@@ -85,7 +113,10 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
     spec.player = spec.player or "PLAYER"
     spec.font   = spec.font or "Arial"
     spec.number = spec.number if spec.number is not None else 10
-
+    spec.player_size = spec.player_size if spec.player_size is not None else 26
+    spec.number_size = spec.number_size if spec.number_size is not None else 75
+    spec.team_size = spec.team_size if spec.team_size is not None else 18
+    spec.sponsor_size = spec.sponsor_size if spec.sponsor_size is not None else 35
     return spec
 
 def _check_dup(key: str, seen: Dict[str, int]):

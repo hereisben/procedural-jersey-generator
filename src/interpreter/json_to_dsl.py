@@ -6,7 +6,6 @@ from typing import Dict, Any, List
 def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
     """
     Convert AI suggestion JSON into a jersey DSL string.
-    Assumes semantic layer sẽ check kỹ hơn (missing fields, v.v.).
     """
 
     # 1. Read pattern
@@ -23,6 +22,10 @@ def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
     lines.append(f'  primary: {data["primary"]};')
     lines.append(f'  secondary: {data["secondary"]};')
     lines.append(f'  tertiary: {data["tertiary"]};')
+    lines.append(f'  player_size: {data["player_size"]};')
+    lines.append(f'  number_size: {data["number_size"]};')
+    lines.append(f'  team_size: {data["team_size"]};')
+    lines.append(f'  sponsor_size: {data["sponsor_size"]};')
 
     # 3. Pattern (skip if plain)
     if pattern_type != "plain":
@@ -34,7 +37,7 @@ def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
     # 4. Optional fields
     pattern_color = data.get("patternColor")
     if pattern_color:
-        lines.append(f"  patterncolor: {pattern_color};")
+        lines.append(f"  pattern_color: {pattern_color};")
 
     number = data.get("number")
     if number is not None:

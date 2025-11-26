@@ -61,7 +61,7 @@
         padding: 8px;
         border: 1px solid #ccc;
         border-radius: 8px;
-        min-width: 120px;
+        min-width: 80px;
         font-size: 14px;
       }
       input[type="color"] {
@@ -129,6 +129,11 @@
       .grid-2 {
         display: grid;
         grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .grid-4 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
         gap: 10px;
       }
       .hidden {
@@ -252,14 +257,14 @@
 
         <div class="grid-2">
           <div class="stack">
-            <label>Primary</label>
+            <label>Primary (shirt)</label>
             <div class="row">
               <input id="primary" type="text" value="#E5A823" />
               <input id="primaryPick" type="color" value="#E5A823" />
             </div>
           </div>
           <div class="stack">
-            <label>Secondary</label>
+            <label>Secondary (short)</label>
             <div class="row">
               <input id="secondary" type="text" value="#0055A2" />
               <input id="secondaryPick" type="color" value="#0055A2" />
@@ -275,15 +280,16 @@
             </div>
           </div>
           <div class="stack">
-            <label>Pattern color (optional)</label>
+            <label>Pattern color</label>
             <div class="row">
-              <input id="patterncolor" type="text" value="#0055A2" />
+              <input id="pattern_color" type="text" value="#0055A2" />
               <input id="patterncolorPick" type="color" value="#0055A2" />
             </div>
           </div>
         </div>
+
         <div class="stack">
-          <label>Font</label>
+          <label>Font Family</label>
           <input
             id="font"
             type="text"
@@ -292,7 +298,35 @@
           />
         </div>
 
-        <hr />
+        <div class="stack">
+          <label
+            >Font Size (Player Name, Number, Team Name, Sponsor Name)</label
+          >
+          <div class="grid-4">
+            <input
+              id="player_size"
+              type="number"
+              min="8"
+              max="100"
+              value="26"
+            />
+            <input
+              id="number_size"
+              type="number"
+              min="8"
+              max="100"
+              value="75"
+            />
+            <input id="team_size" type="number" min="8" max="100" value="18" />
+            <input
+              id="sponsor_size"
+              type="number"
+              min="8"
+              max="100"
+              value="35"
+            />
+          </div>
+        </div>
 
         <div class="grid-2">
           <div class="stack">
@@ -394,13 +428,17 @@
       const primary = $("#primary"),
         secondary = $("#secondary"),
         tertiary = $("#tertiary"),
-        patterncolor = $("#patterncolor");
+        patterncolor = $("#pattern_color");
       const primaryPick = $("#primaryPick"),
         secondaryPick = $("#secondaryPick"),
         tertiaryPick = $("#tertiaryPick"),
         patterncolorPick = $("#patterncolorPick");
       const patternSel = $("#pattern"),
         argBox = $("#argBox");
+      const playerSize = $("#player_size"),
+        numberSize = $("#number_size"),
+        teamSize = $("#team_size"),
+        sponsorSize = $("#sponsor_size");
 
       // debounce helper
       function debounce(fn, ms = 80) {
@@ -513,7 +551,7 @@
         parts.push(`  tertiary: ${ter};`);
 
         const patcol = patterncolor.value.trim();
-        if (patcol) parts.push(`  patterncolor: ${hex6(patcol)};`);
+        if (patcol) parts.push(`  pattern_color: ${hex6(patcol)};`);
 
         // player/number/font
         if (player.value.trim())
@@ -522,6 +560,38 @@
         parts.push(`  number: ${isNaN(num) ? 10 : num};`);
         if (font.value.trim())
           parts.push(`  font: "${escapeStr(font.value.trim())}";`);
+        const playerSizeValue = clamp(
+          parseInt(playerSize.value || "26", 10),
+          0,
+          99
+        );
+        parts.push(
+          `  player_size: ${isNaN(playerSizeValue) ? 26 : playerSizeValue};`
+        );
+        const numberSizeValue = clamp(
+          parseInt(numberSize.value || "75", 10),
+          0,
+          99
+        );
+        parts.push(
+          `  number_size: ${isNaN(numberSizeValue) ? 75 : numberSizeValue};`
+        );
+        const teamSizeValue = clamp(
+          parseInt(teamSize.value || "18", 10),
+          0,
+          99
+        );
+        parts.push(
+          `  team_size: ${isNaN(teamSizeValue) ? 18 : teamSizeValue};`
+        );
+        const sponsorSizeValue = clamp(
+          parseInt(sponsorSize.value || "35", 10),
+          0,
+          99
+        );
+        parts.push(
+          `  sponsor_size: ${isNaN(sponsorSizeValue) ? 35 : sponsorSizeValue};`
+        );
 
         // pattern
         const p = patternSel.value;
@@ -587,8 +657,12 @@
           primary: getHex("primary"),
           secondary: getHex("secondary"),
           tertiary: getHex("tertiary"),
-          patterncolor: getHex("patterncolor"),
+          pattern_color: getHex("pattern_color"),
           pattern: getPattern(),
+          player_size: getInt("player_size"),
+          number_size: getInt("number_size"),
+          team_size: getInt("team_size"),
+          sponsor_size: getInt("sponsor_size"),
         };
       }
 
@@ -612,10 +686,18 @@
           tertiary.value = hex6(ast.tertiary);
           tertiaryPick.value = hex6(ast.tertiary);
         }
-        if (ast.patterncolor) {
-          patterncolor.value = hex6(ast.patterncolor);
-          patterncolorPick.value = hex6(ast.patterncolor);
+        if (ast.pattern_color) {
+          patterncolor.value = hex6(ast.pattern_color);
+          patterncolorPick.value = hex6(ast.pattern_color);
         }
+        if (Number.isInteger(ast.player_size))
+          playerSize.value = String(ast.player_size);
+        if (Number.isInteger(ast.number_size))
+          numberSize.value = String(ast.number_size);
+        if (Number.isInteger(ast.team_size))
+          teamSize.value = String(ast.team_size);
+        if (Number.isInteger(ast.sponsor_size))
+          sponsorSize.value = String(ast.sponsor_size);
 
         patternSel.value = ast.pattern.kind || "";
         renderArgInputs();
@@ -651,7 +733,17 @@
       }, 80);
 
       // wire generic preset inputs
-      ["#team", "#player", "#font", "#sponsor", "#number"].forEach((sel) => {
+      [
+        "#team",
+        "#player",
+        "#font",
+        "#sponsor",
+        "#number",
+        "#player_size",
+        "#number_size",
+        "#team_size",
+        "#sponsor_size",
+      ].forEach((sel) => {
         const el = document.querySelector(sel);
         if (el)
           el.addEventListener("input", () => {
@@ -667,12 +759,16 @@
   primary: #E5A823;
   secondary: #0055A2;
   tertiary: #ffffff;
-  patterncolor: #0055A2;
+  pattern_color: #0055A2;
   player: "BEN";
   number: 23;
   sponsor: "SJSU";
   font: "Sport Scholars Outline";
   pattern: stripes(7,22);
+  player_size: 26;
+  number_size: 75;
+  team_size: 18;
+  sponsor_size: 35;
 }`;
 
       $("#exampleBtn").onclick = () => {
@@ -759,7 +855,7 @@
           } catch (e) {
             throw new Error("Invalid JSON from server");
           }
-
+          console.log(data);
           if (!data.ok) {
             throw new Error(data.error || "AI could not generate a jersey.");
           }
