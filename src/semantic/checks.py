@@ -1,30 +1,35 @@
 # src/semantic/checks.py
 from dataclasses import dataclass
+from turtle import st
 from typing import Optional, List, Dict, Tuple, Union
 from ..ast.nodes import (
     JerseyNode, TeamNode, ColorNode, NumberNode, PlayerNode,
-    SponsorNode, FontNode, PlayerSizeNode, NumberSizeNode, TeamSizeNode, SponsorSizeNode, PatternNode, Stmt
+    SponsorNode, FontNode, PatternNode, Stmt
 )
 
 class SemanticError(Exception):
     pass
 
 @dataclass
+class TextPlacement:
+    text: str | int
+    x: int
+    y: int
+    size: int
+
+@dataclass
 class JerseySpec:
-    team: Optional[str] = None
+    team: Optional[TextPlacement] = None
     primary: Optional[str] = None
     secondary: Optional[str] = None
     tertiary: Optional[str] = None
     pattern_color: Optional[str] = None
-    number: Optional[int] = None
-    player: Optional[str] = None
-    sponsor: Optional[str] = None
+    number: Optional[TextPlacement] = None
+    player: Optional[TextPlacement] = None
+    sponsor: Optional[TextPlacement] = None
     font: Optional[str] = None
-    player_size: Optional[int] = None
-    number_size: Optional[int] = None
-    team_size: Optional[int] = None
-    sponsor_size: Optional[int] = None
     pattern: Optional[Tuple[str, List[Union[int, str]]]] = None  # (ident, args)
+
 
 def _hex6(c: str) -> str:
     c = c.upper()
@@ -41,7 +46,7 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
             _check_dup("team", seen)
             if not s.name.strip():
                 raise SemanticError("team: name must be non-empty")
-            spec.team = s.name.strip()
+            spec.team = TextPlacement(text=s.name.strip(), x=s.x, y=s.y, size=s.size)
 
         elif isinstance(s, ColorNode):
             # allow: primary | secondary | tertiary | pattern_color
@@ -55,43 +60,20 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
             _check_dup("number", seen)
             if s.value < 0 or s.value > 99:
                 raise SemanticError("number: must be between 0 and 99")
-            spec.number = s.value
+            spec.number = TextPlacement(text=s.value, x=s.x, y=s.y, size=s.size)
 
         elif isinstance(s, PlayerNode):
             _check_dup("player", seen)
-            spec.player = s.name.strip()
+            spec.player = TextPlacement(text=s.name.strip(), x=s.x, y=s.y, size=s.size)
 
         elif isinstance(s, SponsorNode):
             _check_dup("sponsor", seen)
-            spec.sponsor = s.name.strip()
+            spec.sponsor = TextPlacement(text=s.name.strip(), x=s.x, y=s.y, size=s.size)
 
         elif isinstance(s, FontNode):
             _check_dup("font", seen)
             spec.font = s.name.strip()
 
-        elif isinstance(s, PlayerSizeNode):
-            _check_dup("player_size", seen)
-            if s.value < 8 or s.value > 100:
-                raise SemanticError("player_size: must be between 8 and 100")
-            spec.player_size = s.value
-
-        elif isinstance(s, NumberSizeNode):
-            _check_dup("number_size", seen)
-            if s.value < 8 or s.value > 100:
-                raise SemanticError("number_size: must be between 8 and 100")
-            spec.number_size = s.value
-
-        elif isinstance(s, TeamSizeNode):
-            _check_dup("team_size", seen)
-            if s.value < 8 or s.value > 100:
-                raise SemanticError("team_size: must be between 8 and 100")
-            spec.team_size = s.value
-
-        elif isinstance(s, SponsorSizeNode):
-            _check_dup("sponsor_size", seen)
-            if s.value < 8 or s.value > 100:
-                raise SemanticError("sponsor_size: must be between 8 and 100")
-            spec.sponsor_size = s.value
 
         elif isinstance(s, PatternNode):
             _check_dup("pattern", seen)
@@ -109,14 +91,11 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
         raise SemanticError(f"Missing required field(s): {', '.join(missing)}")
 
     # defaults
-    spec.team   = spec.team or "Unnamed FC"
-    spec.player = spec.player or "PLAYER"
+    spec.team   = spec.team or TextPlacement(text="Unnamed FC", x=365, y=190, size=18)
+    spec.player = spec.player or TextPlacement(text="PLAYER", x=365, y=85, size=17)
     spec.font   = spec.font or "Arial"
-    spec.number = spec.number if spec.number is not None else 10
-    spec.player_size = spec.player_size if spec.player_size is not None else 26
-    spec.number_size = spec.number_size if spec.number_size is not None else 75
-    spec.team_size = spec.team_size if spec.team_size is not None else 18
-    spec.sponsor_size = spec.sponsor_size if spec.sponsor_size is not None else 35
+    spec.number = spec.number or TextPlacement(text=23, x=365, y=155, size=75)
+    spec.sponsor = spec.sponsor or TextPlacement(text="SJSU", x=115, y=125, size=35)
     return spec
 
 def _check_dup(key: str, seen: Dict[str, int]):

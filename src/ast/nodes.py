@@ -1,10 +1,12 @@
 from dataclasses import dataclass, field
-from os import name
-from typing import List, Optional, Union, Any
+from typing import List, Optional, Union
 
 @dataclass
 class TeamNode:
     name: str
+    x: int
+    y: int
+    size: int
 
 @dataclass
 class ColorNode:
@@ -14,35 +16,27 @@ class ColorNode:
 @dataclass
 class NumberNode:
     value: int
+    x: int
+    y: int
+    size: int
 
 @dataclass
 class PlayerNode:
     name: str
+    x: int
+    y: int
+    size: int
 
 @dataclass
 class SponsorNode:
     name: str
+    x: int
+    y: int
+    size: int
 
 @dataclass
 class FontNode:
     name: str
-
-@dataclass
-class PlayerSizeNode:
-    value: int
-
-@dataclass
-class TeamSizeNode:
-    value: int
-
-@dataclass
-class NumberSizeNode:
-    value: int
-
-@dataclass
-class SponsorSizeNode:
-    value: int
-
 
 Arg = Union[int, str]  # int for INT, str for COLOR/STRING/IDENT
 
@@ -52,7 +46,7 @@ class PatternNode:
     args: List[Arg] = field(default_factory=list)
 
 Stmt = Union[
-    TeamNode, ColorNode, NumberNode, PlayerNode, SponsorNode, FontNode, PlayerSizeNode, NumberSizeNode, TeamSizeNode, SponsorNode, PatternNode
+    TeamNode, ColorNode, NumberNode, PlayerNode, SponsorNode, FontNode, PatternNode
 ]
 
 @dataclass

@@ -8,7 +8,7 @@ def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
     Convert AI suggestion JSON into a jersey DSL string.
     """
 
-    # 1. Read pattern
+    # Read pattern
     pattern = data.get("pattern", {}) or {}
     pattern_type = pattern.get("type", "plain")
     pattern_args: List[Any] = pattern.get("args", []) or []
@@ -17,39 +17,36 @@ def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
     lines: List[str] = []
     lines.append("jersey {")
 
-    # 2. Mandatory
-    lines.append(f'  team: "{data["team"]}";')
+    # Colors, pattern
     lines.append(f'  primary: {data["primary"]};')
     lines.append(f'  secondary: {data["secondary"]};')
     lines.append(f'  tertiary: {data["tertiary"]};')
-    lines.append(f'  player_size: {data["player_size"]};')
-    lines.append(f'  number_size: {data["number_size"]};')
-    lines.append(f'  team_size: {data["team_size"]};')
-    lines.append(f'  sponsor_size: {data["sponsor_size"]};')
-
-    # 3. Pattern (skip if plain)
-    if pattern_type != "plain":
+    pattern_color = data.get("pattern_color") or data.get("secondary") or data.get("primary") or "#000000"
+    if pattern_color:
+        lines.append(f"  pattern_color: {pattern_color};")
+    if pattern_type in ("stripes", "hoops", "sash"):
         if args_str:
             lines.append(f"  pattern: {pattern_type}({args_str});")
         else:
             lines.append(f"  pattern: {pattern_type}();")
 
-    # 4. Optional fields
-    pattern_color = data.get("pattern_color") or data.get("secondary") or data.get("primary") or "#000000"
-    if pattern_color:
-        lines.append(f"  pattern_color: {pattern_color};")
+    #TEAM
+    team = data.get("team", "UNNAMED FC")
+    team_size = int(data.get("team_size", 18))
+    lines.append(f'  team: "{team}", (365, 190), {team_size};')
 
-    number = data.get("number")
-    if number is not None:
-        lines.append(f"  number: {int(number)};")
+    number = int(data.get("number", 23))
+    number_size = int(data.get("number_size", 75))
+    lines.append(f'  number: {number}, (365, 155), {number_size};')
 
-    player = data.get("player")
-    if player:
-        lines.append(f'  player: "{player}";')
+    player = data.get("player", "PLAYER")
+    player_size = int(data.get("player_size", 26))
+    lines.append(f'  player: "{player}", (365, 85), {player_size};')
 
     sponsor = data.get("sponsor")
+    sponsor_size = int(data.get("sponsor_size", 35))
     if sponsor:
-        lines.append(f'  sponsor: "{sponsor}";')
+        lines.append(f'  sponsor: "{sponsor}", (115, 125), {sponsor_size};')
 
     font = data.get("font")
     if font:

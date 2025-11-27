@@ -1,9 +1,10 @@
 
 from dataclasses import dataclass
+from os import name
 from typing import List, Optional
 from ..ast.nodes import (
     JerseyNode, TeamNode, ColorNode, NumberNode, PlayerNode,
-    SponsorNode, FontNode, PlayerSizeNode, NumberSizeNode, TeamSizeNode, SponsorSizeNode, PatternNode
+    SponsorNode, FontNode, PatternNode
 )
 
 @dataclass
@@ -88,14 +89,6 @@ class Parser:
             return self._parse_sponsor()
         if tok.type == "FONT":
             return self._parse_font()
-        if tok.type == "PLAYERSIZE":
-            return self._parse_player_size()
-        if tok.type == "NUMBERSIZE":
-            return self._parse_number_size()
-        if tok.type == "TEAMSIZE":
-            return self._parse_team_size()
-        if tok.type == "SPONSORSIZE":
-            return self._parse_sponsor_size()
         if tok.type == "PATTERN":
             return self._parse_pattern()
         if tok.type == "PATTERNCOLOR":
@@ -108,8 +101,13 @@ class Parser:
         self._expect("TEAM", "")
         self._expect("COLON", "after 'team'")
         s = self._expect("STRING", "for team name").value
-        self._expect("SEMI", "after team string")
-        return TeamNode(name=self._unquote(s))
+        name = self._unquote(s)
+        self._expect("COMMA", "after team name")
+        x, y = self._parse_coord()
+        self._expect("COMMA", "after coord in team")
+        size_tok = self._expect("INT", "for team size")
+        self._expect("SEMI", "after team")
+        return TeamNode(name=name, x=x, y=y, size=int(size_tok.value))
 
     # primary/secondary: #RRGGBB;
     def _parse_color(self, kind: str):
@@ -132,25 +130,40 @@ class Parser:
     def _parse_number(self):
         self._expect("NUMBER", "")
         self._expect("COLON", "after 'number'")
-        n = int(self._expect("INT", "for jersey number").value)
+        n_tok = self._expect("INT", "for jersey number")
+        value = int(n_tok.value)
+        self._expect("COMMA", "after number value")
+        x, y = self._parse_coord()
+        self._expect("COMMA", "after coord in number")
+        size_tok = self._expect("INT", "for number size")
         self._expect("SEMI", "after number")
-        return NumberNode(value=n)
+        return NumberNode(value=value, x=x, y=y, size=int(size_tok.value))
 
     # player: "BEN";
     def _parse_player(self):
         self._expect("PLAYER", "")
         self._expect("COLON", "after 'player'")
         s = self._expect("STRING", "for player name").value
+        name = self._unquote(s)
+        self._expect("COMMA", "after player name")
+        x, y = self._parse_coord()
+        self._expect("COMMA", "after coord in player")
+        size_tok = self._expect("INT", "for player size")
         self._expect("SEMI", "after player")
-        return PlayerNode(name=self._unquote(s))
+        return PlayerNode(name=name, x=x, y=y, size=int(size_tok.value))
 
     # sponsor: "SJSU";
     def _parse_sponsor(self):
         self._expect("SPONSOR", "")
         self._expect("COLON", "after 'sponsor'")
         s = self._expect("STRING", "for sponsor").value
+        name = self._unquote(s)
+        self._expect("COMMA", "after sponsor name")
+        x, y = self._parse_coord()
+        self._expect("COMMA", "after coord in sponsor")
+        size_tok = self._expect("INT", "for sponsor size")
         self._expect("SEMI", "after sponsor")
-        return SponsorNode(name=self._unquote(s))
+        return SponsorNode(name=name, x=x, y=y, size=int(size_tok.value))
 
     # font: IDENT | "Some Font";
     def _parse_font(self):
@@ -163,35 +176,6 @@ class Parser:
         self._expect("SEMI", "after font")
         name = self._unquote(tok.value) if tok.type == "STRING" else tok.value
         return FontNode(name=name)
-    
-    # fontsize: INT
-    def _parse_player_size(self):
-        self._expect("PLAYERSIZE", "")
-        self._expect("COLON", "after 'player_size'")
-        n = int(self._match("INT", "for player_size").value)
-        self._expect("SEMI", "after player_size")
-        return PlayerSizeNode(value=n)
-    
-    def _parse_number_size(self):
-        self._expect("NUMBERSIZE", "")
-        self._expect("COLON", "after 'number_size'")
-        n = int(self._match("INT", "for number_size").value)
-        self._expect("SEMI", "after number_size")
-        return NumberSizeNode(value=n)
-    
-    def _parse_team_size(self):
-        self._expect("TEAMSIZE", "")
-        self._expect("COLON", "after 'team_size'")
-        n = int(self._match("INT", "for team_size").value)
-        self._expect("SEMI", "after team_size")
-        return TeamSizeNode(value=n)
-    
-    def _parse_sponsor_size(self):
-        self._expect("SPONSORSIZE", "")
-        self._expect("COLON", "after 'sponsor_size'")
-        n = int(self._match("INT", "for sponsor_size").value)
-        self._expect("SEMI", "after sponsor_size")
-        return SponsorSizeNode(value=n)
 
     # pattern: stripes(7,14);
     def _parse_pattern(self):
@@ -217,6 +201,14 @@ class Parser:
         if tok.type == "INT":
             return int(tok.value)
         return self._unquote(tok.value) if tok.type == "STRING" else tok.value
+    
+    def _parse_coord(self) -> tuple[int, int]:
+        self._expect("LPAREN", "to open coord")
+        x_tok = self._expect("INT", "for x coord")
+        self._expect("COMMA", "between x and y coord")
+        y_tok = self._expect("INT", "for y coord")
+        self._expect("RPAREN", "to close coord")
+        return int(x_tok.value), int(y_tok.value)
 
     @staticmethod
     def _unquote(s: str) -> str:

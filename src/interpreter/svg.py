@@ -203,10 +203,10 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     back_cx  = 365
 
     front_sponsor = _svg_text(
-        spec.sponsor,
-        x=front_cx,
-        y=125,
-        size=spec.sponsor_size,
+        spec.sponsor.text,
+        x=spec.sponsor.x,
+        y=spec.sponsor.y,
+        size=spec.sponsor.size,
         anchor="middle",
         weight="regular",
         fill=ter,
@@ -214,7 +214,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     ) if spec.sponsor else ""
 
     front_number = _svg_text(
-        str(spec.number),
+        str(spec.number.text),
         x=145,
         y=70,
         size=22,
@@ -226,7 +226,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
 
     # Back (right): sponsor + player + number + team
     back_sponsor = _svg_text(
-        spec.sponsor,
+        spec.sponsor.text,
         x=back_cx,
         y=45,
         size=10,
@@ -237,10 +237,10 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     ) if spec.sponsor else ""
 
     back_player = _svg_text(
-        spec.player,
-        x=back_cx,
-        y=85,
-        size=spec.player_size,
+        spec.player.text,
+        x=spec.player.x,
+        y=spec.player.y,
+        size=spec.player.size,
         anchor="middle",
         weight="regular",
         fill=ter,
@@ -249,10 +249,10 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     )
 
     back_number = _svg_text(
-        str(spec.number),
-        x=back_cx,
-        y=155,
-        size=spec.number_size,
+        str(spec.number.text),
+        x=spec.number.x,
+        y=spec.number.y,
+        size=spec.number.size,
         anchor="middle",
         weight="regular",
         fill=ter,
@@ -260,10 +260,10 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     )
 
     back_team = _svg_text(
-        spec.team,
-        x=back_cx,
-        y=190,
-        size=spec.team_size,
+        spec.team.text,
+        x=spec.team.x,
+        y=spec.team.y,
+        size=spec.team.size,
         anchor="middle",
         weight="regular",
         fill=ter,

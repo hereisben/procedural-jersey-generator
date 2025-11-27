@@ -129,6 +129,11 @@
         grid-template-columns: 1fr 1fr 1fr 1fr;
         gap: 10px;
       }
+      .grid-8 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        gap: 10px;
+      }
       .hidden {
         display: none;
       }
@@ -323,6 +328,70 @@
 
         <div class="grid-2">
           <div class="stack">
+            <label>Player Name Coordinates (x, y)</label>
+            <div class="grid-2">
+              <input
+                id="player_x"
+                type="number"
+                min="0"
+                max="500"
+                value="365"
+              />
+              <input id="player_y" type="number" min="0" max="500" value="85" />
+            </div>
+          </div>
+          <div class="stack">
+            <label>Number Coordinates (x, y)</label>
+            <div class="grid-2">
+              <input
+                id="number_x"
+                type="number"
+                min="0"
+                max="500"
+                value="365"
+              />
+              <input
+                id="number_y"
+                type="number"
+                min="0"
+                max="500"
+                value="155"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="stack">
+            <label>Team Name Coordinates (x, y)</label>
+            <div class="grid-2">
+              <input id="team_x" type="number" min="0" max="500" value="365" />
+              <input id="team_y" type="number" min="0" max="500" value="190" />
+            </div>
+          </div>
+          <div class="stack">
+            <label>Sponsor Name Coordinates (x, y)</label>
+            <div class="grid-2">
+              <input
+                id="sponsor_x"
+                type="number"
+                min="0"
+                max="500"
+                value="115"
+              />
+              <input
+                id="sponsor_y"
+                type="number"
+                min="0"
+                max="500"
+                value="125"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="stack">
             <label>Pattern</label>
             <select id="pattern">
               <option value="">(none)</option>
@@ -418,6 +487,14 @@
         number = $("#number"),
         font = $("#font"),
         sponsor = $("#sponsor");
+      const teamX = $("#team_x"),
+        teamY = $("#team_y"),
+        playerX = $("#player_x"),
+        playerY = $("#player_y"),
+        numberX = $("#number_x"),
+        numberY = $("#number_y"),
+        sponsorX = $("#sponsor_x"),
+        sponsorY = $("#sponsor_y");
       const primary = $("#primary"),
         secondary = $("#secondary"),
         tertiary = $("#tertiary"),
@@ -453,25 +530,25 @@
 
         if (value === "stripes") {
           argBox.innerHTML = `
-            <label>Args <span>| ${value}(count, thickness)</span></label>
-            <div class="row grid-2">
-              <input id="argCount" type="number" min="1" max="50" value="7" title="count">
-              <input id="argThickness" type="number" min="2" max="120" value="22" title="thickness (px)">
-            </div>`;
+                  <label>Args <span>| ${value}(count, thickness)</span></label>
+                  <div class="row grid-2">
+                    <input id="argCount" type="number" min="1" max="50" value="7" title="count">
+                    <input id="argThickness" type="number" min="2" max="120" value="22" title="thickness (px)">
+                  </div>`;
         } else if (value === "hoops") {
           argBox.innerHTML = `
-            <label>Args <span>| ${value}(count, thickness)</span></label>
-            <div class="row grid-2">
-              <input id="argCount" type="number" min="1" max="50" value="9" title="count">
-              <input id="argThickness" type="number" min="2" max="120" value="22" title="thickness (px)">
-            </div>`;
+                  <label>Args <span>| ${value}(count, thickness)</span></label>
+                  <div class="row grid-2">
+                    <input id="argCount" type="number" min="1" max="50" value="9" title="count">
+                    <input id="argThickness" type="number" min="2" max="120" value="22" title="thickness (px)">
+                  </div>`;
         } else if (value === "sash") {
           argBox.innerHTML = `
-            <label>Args <span>| sash(angle, width)</span></label>
-            <div class="row grid-2">
-              <input id="argAngle" type="number" min="0" max="85" value="30" title="angle (deg)">
-              <input id="argWidth" type="number" min="10" max="200" value="80" title="width (px)">
-            </div>`;
+                  <label>Args <span>| sash(angle, width)</span></label>
+                  <div class="row grid-2">
+                    <input id="argAngle" type="number" min="0" max="85" value="30" title="angle (deg)">
+                    <input id="argWidth" type="number" min="10" max="200" value="80" title="width (px)">
+                  </div>`;
         }
         // wire inputs live
         argBox.querySelectorAll("input").forEach((el) => {
@@ -527,14 +604,6 @@
         const parts = [];
         parts.push("jersey {");
 
-        // sponsor (optional)
-        if (sponsor && sponsor.value.trim())
-          parts.push(`  sponsor: "${escapeStr(sponsor.value.trim())}";`);
-
-        // team
-        if (team.value.trim())
-          parts.push(`  team: "${escapeStr(team.value.trim())}";`);
-
         // colors
         const prim = hex6(primary.value || "#0033AA");
         const sec = hex6(secondary.value || "#FFCC00");
@@ -546,47 +615,78 @@
         const patcol = patterncolor.value.trim();
         if (patcol) parts.push(`  pattern_color: ${hex6(patcol)};`);
 
-        // player/number/font
-        if (player.value.trim())
-          parts.push(`  player: "${escapeStr(player.value.trim())}";`);
-        const num = clamp(parseInt(number.value || "10", 10), 0, 99);
-        parts.push(`  number: ${isNaN(num) ? 10 : num};`);
-        if (font.value.trim())
+        // ---- FONT ----
+        if (font.value.trim()) {
           parts.push(`  font: "${escapeStr(font.value.trim())}";`);
+        }
+
+        // ---- SIZES ----
         const playerSizeValue = clamp(
           parseInt(playerSize.value || "26", 10),
-          0,
-          99
-        );
-        parts.push(
-          `  player_size: ${isNaN(playerSizeValue) ? 26 : playerSizeValue};`
+          8,
+          100
         );
         const numberSizeValue = clamp(
           parseInt(numberSize.value || "75", 10),
-          0,
-          99
-        );
-        parts.push(
-          `  number_size: ${isNaN(numberSizeValue) ? 75 : numberSizeValue};`
+          8,
+          100
         );
         const teamSizeValue = clamp(
           parseInt(teamSize.value || "18", 10),
-          0,
-          99
-        );
-        parts.push(
-          `  team_size: ${isNaN(teamSizeValue) ? 18 : teamSizeValue};`
+          8,
+          100
         );
         const sponsorSizeValue = clamp(
           parseInt(sponsorSize.value || "35", 10),
-          0,
-          99
-        );
-        parts.push(
-          `  sponsor_size: ${isNaN(sponsorSizeValue) ? 35 : sponsorSizeValue};`
+          8,
+          100
         );
 
-        // pattern
+        // ---- COORDS ----
+        const px = clamp(parseInt(playerX.value || "365", 10), 0, 1000);
+        const py = clamp(parseInt(playerY.value || "85", 10), 0, 1000);
+        const nx = clamp(parseInt(numberX.value || "365", 10), 0, 1000);
+        const ny = clamp(parseInt(numberY.value || "155", 10), 0, 1000);
+        const tx = clamp(parseInt(teamX.value || "365", 10), 0, 1000);
+        const ty = clamp(parseInt(teamY.value || "190", 10), 0, 1000);
+        const sx = clamp(parseInt(sponsorX.value || "115", 10), 0, 1000);
+        const sy = clamp(parseInt(sponsorY.value || "125", 10), 0, 1000);
+
+        // ---- TEAM ----
+        if (team.value.trim()) {
+          parts.push(
+            `  team: "${escapeStr(
+              team.value.trim()
+            )}", (${tx}, ${ty}), ${teamSizeValue};`
+          );
+        }
+
+        // ---- PLAYER ----
+        if (player.value.trim()) {
+          parts.push(
+            `  player: "${escapeStr(
+              player.value.trim()
+            )}", (${px}, ${py}), ${playerSizeValue};`
+          );
+        }
+
+        // ---- NUMBER ----
+        const numRaw = parseInt(number.value || "23", 10);
+        const numValue = isNaN(numRaw) ? 23 : clamp(numRaw, 0, 99);
+        parts.push(
+          `  number: ${numValue}, (${nx}, ${ny}), ${numberSizeValue};`
+        );
+
+        // ---- SPONSOR (optional) ----
+        if (sponsor && sponsor.value.trim()) {
+          parts.push(
+            `  sponsor: "${escapeStr(
+              sponsor.value.trim()
+            )}", (${sx}, ${sy}), ${sponsorSizeValue};`
+          );
+        }
+
+        // PATTERN
         const p = patternSel.value;
         if (p) {
           if (p === "stripes" || p === "hoops") {
@@ -641,31 +741,76 @@
           if (m2) return { kind: "sash", angle: +m2[1], width: +m2[2] };
           return { kind: "" };
         };
+
+        function parseTextPlacement(key) {
+          const regex = new RegExp(
+            key +
+              '\\s*:\\s*"(.*?)"\\s*,\\s*\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\)\\s*,\\s*(\\d+)\\s*;',
+            "i"
+          );
+          const m = code.match(regex);
+          if (!m) return null;
+          return {
+            text: m[1],
+            x: parseInt(m[2], 10),
+            y: parseInt(m[3], 10),
+            size: parseInt(m[4], 10),
+          };
+        }
+
+        function parseNumberPlacement() {
+          const regex =
+            /number\s*:\s*(\d+)\s*,\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*,\s*(\d+)\s*;/i;
+          const m = code.match(regex);
+          if (!m) return null;
+          return {
+            value: parseInt(m[1], 10),
+            x: parseInt(m[2], 10),
+            y: parseInt(m[3], 10),
+            size: parseInt(m[4], 10),
+          };
+        }
+
         return {
-          team: getStr("team"),
-          player: getStr("player"),
-          sponsor: getStr("sponsor"),
+          team: parseTextPlacement("team"),
+          player: parseTextPlacement("player"),
+          sponsor: parseTextPlacement("sponsor"),
           font: getStr("font"),
-          number: getInt("number"),
+          number: parseNumberPlacement(),
           primary: getHex("primary"),
           secondary: getHex("secondary"),
           tertiary: getHex("tertiary"),
           pattern_color: getHex("pattern_color"),
           pattern: getPattern(),
-          player_size: getInt("player_size"),
-          number_size: getInt("number_size"),
-          team_size: getInt("team_size"),
-          sponsor_size: getInt("sponsor_size"),
         };
       }
 
       function setFormFromAST(ast) {
-        if (ast.team !== null) team.value = ast.team;
-        if (ast.player !== null) player.value = ast.player;
-        if (ast.sponsor !== null && $("#sponsor"))
-          $("#sponsor").value = ast.sponsor;
+        if (ast.team !== null) {
+          team.value = ast.team.text;
+          if (teamX) teamX.value = ast.team.x;
+          if (teamY) teamY.value = ast.team.y;
+          if (teamSize) teamSize.value = ast.team.size;
+        }
+        if (ast.number) {
+          number.value = String(ast.number.value);
+          if (numberX) numberX.value = ast.number.x;
+          if (numberY) numberY.value = ast.number.y;
+          if (numberSize) numberSize.value = ast.number.size;
+        }
+        if (ast.player) {
+          player.value = ast.player.text;
+          if (playerX) playerX.value = ast.player.x;
+          if (playerY) playerY.value = ast.player.y;
+          if (playerSize) playerSize.value = ast.player.size;
+        }
+        if (ast.sponsor) {
+          if (sponsor) sponsor.value = ast.sponsor.text;
+          if (sponsorX) sponsorX.value = ast.sponsor.x;
+          if (sponsorY) sponsorY.value = ast.sponsor.y;
+          if (sponsorSize) sponsorSize.value = ast.sponsor.size;
+        }
         if (ast.font !== null) font.value = ast.font;
-        if (Number.isInteger(ast.number)) number.value = String(ast.number);
 
         if (ast.primary) {
           primary.value = hex6(ast.primary);
@@ -683,14 +828,6 @@
           patterncolor.value = hex6(ast.pattern_color);
           patterncolorPick.value = hex6(ast.pattern_color);
         }
-        if (Number.isInteger(ast.player_size))
-          playerSize.value = String(ast.player_size);
-        if (Number.isInteger(ast.number_size))
-          numberSize.value = String(ast.number_size);
-        if (Number.isInteger(ast.team_size))
-          teamSize.value = String(ast.team_size);
-        if (Number.isInteger(ast.sponsor_size))
-          sponsorSize.value = String(ast.sponsor_size);
 
         patternSel.value = ast.pattern.kind || "";
         renderArgInputs();
@@ -736,6 +873,14 @@
         "#number_size",
         "#team_size",
         "#sponsor_size",
+        "#player_x",
+        "#player_y",
+        "#number_x",
+        "#number_y",
+        "#team_x",
+        "#team_y",
+        "#sponsor_x",
+        "#sponsor_y",
       ].forEach((sel) => {
         const el = document.querySelector(sel);
         if (el)
@@ -748,21 +893,17 @@
       $("#renderBtn").onclick = () => tryRender();
 
       const EXAMPLE = `jersey {
-  team: "Spartan FC";
-  primary: #E5A823;
-  secondary: #0055A2;
-  tertiary: #ffffff;
-  pattern_color: #0055A2;
-  player: "BEN";
-  number: 23;
-  sponsor: "SJSU";
-  font: "Sport Scholars Outline";
-  pattern: stripes(7,22);
-  player_size: 26;
-  number_size: 75;
-  team_size: 18;
-  sponsor_size: 35;
-}`;
+        primary: #E5A823;
+        secondary: #0055A2;
+        tertiary: #ffffff;
+        pattern_color: #0055A2;
+        font: "Sport Scholars Outline";
+        team: "Spartan FC", (365, 190), 18;
+        player: "BEN", (365, 85), 26;
+        number: 23, (365, 155), 75;
+        sponsor: "SJSU", (115, 125), 35;
+        pattern: stripes(7,22);
+      }`;
 
       $("#exampleBtn").onclick = () => {
         src.value = EXAMPLE;

@@ -14,14 +14,15 @@ stmt         := team_stmt
               | sponsor_stmt
               | font_stmt ;
 
-team_stmt               := "team" ":" STRING ";" ;
+team_stmt               := "team" ":" STRING "," coord "," INT ";" ;
 color_primary_stmt      := "primary" ":" COLOR ";" ;
 color_secondary_stmt    := "secondary" ":" COLOR ";" ;
 color_tertiary_stmt     := "tertiary" ":" COLOR ";" ; 
-number_stmt             := "number" ":" INT ";" ;
-player_stmt             := "player" ":" STRING ";" ;
-sponsor_stmt            := "sponsor" ":" STRING ";" ;
+number_stmt             := "number" ":" INT "," coord "," INT  ";" ;
+player_stmt             := "player" ":" STRING "," coord "," INT ";" ;
+sponsor_stmt            := "sponsor" ":" STRING "," coord "," INT ";" ;
 font_stmt               := "font" ":" (IDENT | STRING) ";" ;
+coord                   := "(" INT "," INT ")" ;
 player_size_stmt        := "player_size" ":" INT ";" ;
 number_size_stmt        := "number_size" ":" INT ";" ;
 team_size_stmt          := "team_size" ":" INT ";" ;
