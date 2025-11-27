@@ -1,6 +1,5 @@
 # src/semantic/checks.py
 from dataclasses import dataclass
-from turtle import st
 from typing import Optional, List, Dict, Tuple, Union
 from ..ast.nodes import (
     JerseyNode, TeamNode, ColorNode, NumberNode, PlayerNode,
