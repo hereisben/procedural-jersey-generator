@@ -398,6 +398,7 @@
               <option value="stripes" selected>stripes</option>
               <option value="hoops">hoops</option>
               <option value="sash">sash</option>
+              <option value="checker">checker</option>
             </select>
           </div>
           <div id="argBox" class="stack"><!-- dynamic args --></div>
@@ -549,6 +550,13 @@
                     <input id="argAngle" type="number" min="0" max="85" value="30" title="angle (deg)">
                     <input id="argWidth" type="number" min="10" max="200" value="80" title="width (px)">
                   </div>`;
+        } else if (value === "checker") {
+          argBox.innerHTML = `
+                  <label>Args <span>| checker(width, height)</span></label>
+                  <div class="row grid-2">
+                    <input id="argCellWidth" type="number" min="5" max="200" value="30" title="cell width (px)">
+                    <input id="argCellHeight" type="number" min="5" max="200" value="30" title="cell height (px)">
+                  </div>`;
         }
         // wire inputs live
         argBox.querySelectorAll("input").forEach((el) => {
@@ -597,6 +605,7 @@
         return s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
       }
       function clamp(n, lo, hi) {
+        if (!Number.isFinite(n)) n = lo;
         return Math.max(lo, Math.min(hi, n));
       }
 
@@ -705,6 +714,17 @@
               200
             );
             parts.push(`  pattern: sash(${a},${w});`);
+          } else if (p === "checker") {
+            let cwRaw = parseInt($("#argCellWidth")?.value || "30", 10);
+            let chRaw = parseInt($("#argCellHeight")?.value || "30", 10);
+
+            if (!Number.isFinite(cwRaw)) cwRaw = 30;
+            if (!Number.isFinite(chRaw)) chRaw = 30;
+
+            const cw = clamp(cwRaw, 5, 200);
+            const ch = clamp(chRaw, 5, 200);
+
+            parts.push(`  pattern: checker(${cw},${ch});`);
           }
         }
 
@@ -739,6 +759,16 @@
             /pattern\s*:\s*sash\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*;/i
           );
           if (m2) return { kind: "sash", angle: +m2[1], width: +m2[2] };
+          const m3 = code.match(
+            /pattern\s*:\s*checker\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*;/i
+          );
+          if (m3) {
+            return {
+              kind: "checker",
+              cellWidth: +m3[1],
+              cellHeight: +m3[2],
+            };
+          }
           return { kind: "" };
         };
 
@@ -842,6 +872,13 @@
             ($("#argAngle").value = ast.pattern.angle ?? $("#argAngle").value);
           $("#argWidth") &&
             ($("#argWidth").value = ast.pattern.width ?? $("#argWidth").value);
+        } else if (ast.pattern.kind === "checker") {
+          $("#argCellWidth") &&
+            ($("#argCellWidth").value =
+              ast.pattern.cellWidth ?? $("#argCellWidth").value);
+          $("#argCellHeight") &&
+            ($("#argCellHeight").value =
+              ast.pattern.cellHeight ?? $("#argCellHeight").value);
         }
       }
 

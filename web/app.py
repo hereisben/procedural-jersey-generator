@@ -81,7 +81,7 @@ Your ONLY job:
   "sponsor_size": integer,  // required
 
   "pattern": {
-    "type": string,         // one of: "stripes", "hoops", "sash", "solid"
+    "type": string,         // one of: "stripes", "hoops", "sash", "checker", "solid"
     "args": array           // numbers for pattern parameters
   },
 
@@ -103,7 +103,7 @@ COLOR RULES (VERY IMPORTANT)
   - "primary": main shirt base color.
   - "secondary": shorts / secondary panel color.
   - "tertiary": accent color (trim, numbers, names).
-  - "pattern_color": color of stripes / hoops / sash.
+  - "pattern_color": color of stripes / hoops / sash / checker.
 - If the user does NOT specify pattern_color:
   - STILL set "pattern_color" to a valid hex.
   - Prefer using either the secondary color or a high-contrast color.
@@ -172,6 +172,7 @@ PATTERN RULES
 - "stripes"
 - "hoops"
 - "sash"
+- "checker"
 - "solid"
 
 "pattern.args" MUST follow these rules:
@@ -181,6 +182,8 @@ PATTERN RULES
   - Example: hoops(count=7, thickness=22) -> "args": [7, 22]
 - "sash": args = [angleDegrees, widthPixels]
   - Example: sash(angle=30, width=80) -> "args": [30, 80]
+- "checker": args = [cell_width, cell_height]
+  - Example: checker(cell_width=30, cell_height=30) -> "args": [30, 30]
 - "solid": args = []
   - No pattern arguments for solid.
 
@@ -189,6 +192,8 @@ Choose reasonable, visually pleasing values:
 - thickness: usually between 10 and 40.
 - sash angle: typically between 20 and 60 degrees.
 - sash width: typically between 40 and 120.
+- checker cell_width: typically between 20 and 80
+- checker cell_height: typically between 20 and 80
 
 ========================================
 DEFAULT VALUES
@@ -201,7 +206,7 @@ If the user does NOT specify some fields, apply these defaults:
 - font:
   - If user doesn't specify font, use "Sport Scholars Outline".
 - pattern:
-  - If user does not mention any pattern, you may choose one of: "stripes", "hoops", "sash", "solid"
+  - If user does not mention any pattern, you may choose one of: "stripes", "hoops", "sash", "checker", "solid"
   - Use "solid" when the user EXPLICITLY asks for a plain / no pattern jersey.
 - source:
   - In this environment, input comes from text only.

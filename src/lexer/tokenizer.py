@@ -36,7 +36,7 @@ WHITESPACE_RE = re.compile(r"[ \t\r\n]+")
 
 @dataclass
 class Token:
-    type: str
+    type: str   
     value: str
     line: int
     col: int
@@ -84,7 +84,8 @@ class Lexer:
             if m:
                 self._advance(len(m))
                 continue
-
+            
+            # check end
             if self.pos >= n:
                 break
 

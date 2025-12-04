@@ -1,5 +1,6 @@
 # src/semantic/checks.py
 from dataclasses import dataclass
+from textwrap import indent
 from typing import Optional, List, Dict, Tuple, Union
 from ..ast.nodes import (
     JerseyNode, TeamNode, ColorNode, NumberNode, PlayerNode,
@@ -79,6 +80,13 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
             ident = s.ident.strip()
             if not ident:
                 raise SemanticError("pattern: ident must be non-empty")
+            if (ident == "checker"):
+                w = s.args[0]
+                h = s.args[1]
+                if ((w is not None and w < 5) or (h is not None and h < 5)):
+                    raise SemanticError("checker: width/height must greater than 5")
+                if ((w is not None and w > 200) or (h is not None and h > 200)):
+                    raise SemanticError("checker: width/height must less than 200")
             spec.pattern = (ident, s.args[:])
 
         else:

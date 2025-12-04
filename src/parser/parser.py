@@ -1,6 +1,5 @@
 
 from dataclasses import dataclass
-from os import name
 from typing import List, Optional
 from ..ast.nodes import (
     JerseyNode, TeamNode, ColorNode, NumberNode, PlayerNode,

@@ -358,6 +358,11 @@ def _pattern_layer(spec: JerseySpec, prim: str, sec: str) -> str:
         angle = int(args[0]) if len(args) >= 1 else 30
         width = int(args[1]) if len(args) >= 2 else 80
         return _sash(angle, width, sec)
+    
+    if ident == "checker":
+        cw = int(args[0]) if len(args) >= 1 else 10
+        ch = int(args[1]) if len(args) >= 2 else 10
+        return _checker(cw, ch, sec)
 
     return ""  # unknown pattern: ignore
 
@@ -392,6 +397,27 @@ def _sash(angle: int, width: int, color: str) -> str:
         f'  <rect x="225" y="-60" width="{width}" height="{H}" fill="{color}" opacity="1"/>'
         f'</g>'
     )
+
+def _checker(cw: int, ch: int, color: str) -> str:
+    left, right, top, bottom = 0, W, 0, H
+
+    cw = max(1, cw)
+    ch = max(1, ch)
+
+    cols = (right - left) // cw + 2
+    rows = (bottom - top) // ch + 2
+
+    rects: list[str] = []
+    for r in range(rows):
+        for c in range(cols):
+            if (r + c) % 2 == 0:
+                x = left + c * cw
+                y = top + r * ch
+                rects.append(
+                    f'<rect x="{x}" y="{y}" width="{cw}" height="{ch}" '
+                    f'fill="{color}" opacity="1"/>'
+                )
+    return "\n".join(rects)
 
 @lru_cache
 def _load_font_base64():
