@@ -127,6 +127,11 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
                     raise SemanticError("camo: cell must be between 1 and 100")
                 if ((v is not None and v < 0) or (v is not None and v > 100)):
                     raise SemanticError("camo: variance must be between 0 and 100")
+            if (ident == "halftone_dots"):
+                d = s.args[0]
+                sp = s.args[1]
+                if ((d is not None and s is not None) and ((d < 1 or d > 100) or (sp < 1 or sp > 100))):
+                    raise SemanticError("halftone_dots: spacing/dot_size must be between 1 and 100")
 
             spec.pattern = (ident, s.args[:])
 

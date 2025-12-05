@@ -385,6 +385,11 @@ def _pattern_layer(spec: JerseySpec, prim: str, sec: str) -> str:
         cell = args[0] if len(args) >= 1 else 12
         variance = args[1] if len(args) >= 2 else 50
         return _camo(cell, variance, sec, prim)
+    
+    if ident == "halftone_dots":
+        dot_size = args[0] if len(args) >= 1 else 6
+        spacing = args[1] if len(args) >= 2 else 12
+        return _halftone_dots(dot_size, spacing, sec)
 
     return ""  # unknown pattern: ignore
 
@@ -573,6 +578,38 @@ def _camo(cell: int, variance: int, color: str, base: str) -> str:
                 )
 
     return "\n".join(rects)
+
+def _halftone_dots(dot_size: int, spacing: int, color: str) -> str:
+    dot_size = max(1, dot_size)
+    spacing = max(dot_size, spacing)
+
+    radius = dot_size / 2
+
+    left, right, top, bottom = 0, W, 0, H
+    width  = right - left
+    height = bottom - top
+
+    cols = int(width  // spacing) + 1
+    rows = int(height // spacing) + 1
+
+    circles: list[str] = []
+    max_row = max(rows - 1, 1)
+
+    for r in range(rows):
+        t = r / max_row
+        alpha = 0.2 + 0.8 * t
+
+        cy = top + r * spacing + spacing / 2
+        for c in range(cols):
+            cx = left + c * spacing + spacing / 2
+
+            circles.append(
+                f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{radius:.1f}" '
+                f'fill="{color}" opacity="{alpha:.3f}"/>'
+            )
+
+    return "\n".join(circles)
+
 
 @lru_cache
 def _load_font_base64():

@@ -81,7 +81,7 @@ Your ONLY job:
   "sponsor_size": integer,  // required
 
   "pattern": {
-    "type": string,         // one of: "stripes", "hoops", "sash", "checker", "gradient", "brush", "waves", "camo", "solid"
+    "type": string,         // one of: "stripes", "hoops", "sash", "checker", "gradient", "brush", "waves", "camo", "halftone_dots", "solid"
     "args": array           // numbers/strings for pattern parameters according to the type
   },
 
@@ -177,6 +177,7 @@ PATTERN RULES
 - "brush"
 - "waves"
 - "camo"
+- "halftone_dots"
 - "solid"
 
 "pattern.args" MUST follow these rules:
@@ -220,6 +221,10 @@ PATTERN RULES
   - Example: brush(cell=12, variance=50) -> "args": [12, 50]
   - Both values MUST be integers.
 
+- "halftone_dots": args = [dot_size, spacing]
+  - Example: brush(dot_size=6, spacing=50) -> "args": [6, 12]
+  - Both values MUST be integers.
+
 - "solid": args = []
   - No pattern arguments for solid.
 
@@ -237,6 +242,8 @@ Choose reasonable, visually pleasing values:
 - waves wavelength: typically between 1 and 100
 - camo cell: typically between 1 and 100
 - camo variance: typically between 0 and 100
+- halftone_dots dot_size: typically between 1 and 100
+- halftone_dots spacing: typically between 1 and 100
 
 ========================================
 DEFAULT VALUES

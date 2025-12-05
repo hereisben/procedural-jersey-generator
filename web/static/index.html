@@ -406,6 +406,7 @@
               <option value="brush">brush</option>
               <option value="waves">waves</option>
               <option value="camo">camo</option>
+              <option value="halftone_dots">halftone dots</option>
             </select>
           </div>
           <div id="argBox" class="stack"><!-- dynamic args --></div>
@@ -591,8 +592,14 @@
               <input id="argCell" type="number" min="1" max="100" value="12" title="cell (px)">
               <input id="argVariance" type="number" min="0" max="100" value="50" title="variance">
             </div>`;
+        } else if (value === "halftone_dots") {
+          argBox.innerHTML = `
+            <label>Args <span>| (dot_size, spacing)</span></label>
+            <div class="row grid-2">
+              <input id="argDotSize" type="number" min="1" max="100" value="6" title="dot_size (px)">
+              <input id="argSpacing" type="number" min="1" max="100" value="12" title="spacing (px)">
+            </div>`;
         }
-
         // wire inputs live
         argBox.querySelectorAll("input, select").forEach((el) => {
           ["input", "change"].forEach((evt) => {
@@ -807,6 +814,17 @@
             const v = clamp(vRaw, 0, 100);
 
             parts.push(`  pattern: camo(${c},${v});`);
+          } else if (p === "halftone_dots") {
+            let dRaw = parseInt($("#argDotSize")?.value || "6", 10);
+            let sRaw = parseInt($("#argSpacing")?.value || "12", 10);
+
+            if (!Number.isFinite(dRaw)) dRaw = 6;
+            if (!Number.isFinite(sRaw)) sRaw = 12;
+
+            const d = clamp(dRaw, 1, 100);
+            const s = clamp(sRaw, 1, 100);
+
+            parts.push(`  pattern: halftone_dots(${d},${s});`);
           }
         }
 
@@ -886,6 +904,16 @@
               kind: "camo",
               cell: +m7[1],
               variance: +m7[2],
+            };
+          }
+          const m8 = code.match(
+            /pattern\s*:\s*halftone_dots\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*;/i
+          );
+          if (m8) {
+            return {
+              kind: "halftone_dots",
+              dot_size: +m8[1],
+              spacing: +m8[2],
             };
           }
           return { kind: "" };
@@ -1028,6 +1056,13 @@
           $("#argVariance") &&
             ($("#argVariance").value =
               ast.pattern.variance ?? $("#argVariance").value);
+        } else if (ast.pattern.kind === "halftone_dots") {
+          $("#argDotSize") &&
+            ($("#argDotSize").value =
+              ast.pattern.dot_size ?? $("#argDotSize").value);
+          $("#argSpacing") &&
+            ($("#argSpacing").value =
+              ast.pattern.spacing ?? $("#argSpacing").value);
         }
       }
 

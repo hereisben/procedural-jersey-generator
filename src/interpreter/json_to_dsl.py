@@ -66,6 +66,12 @@ def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
             variance = int(pattern_args[1])
             lines.append(f"  pattern: camo({cell},{variance});")
 
+    elif pattern_type == "halftone_dots":
+        if len(pattern_args) >= 2:
+            dot_size = int(pattern_args[0])
+            spacing = int(pattern_args[1])
+            lines.append(f"  pattern: halftone_dots({dot_size},{spacing});")
+
     elif pattern_type == "solid":
         pass
     
