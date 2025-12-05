@@ -81,8 +81,8 @@ Your ONLY job:
   "sponsor_size": integer,  // required
 
   "pattern": {
-    "type": string,         // one of: "stripes", "hoops", "sash", "checker", "solid"
-    "args": array           // numbers for pattern parameters
+    "type": string,         // one of: "stripes", "hoops", "sash", "checker", "gradient", "solid"
+    "args": array           // numbers/strings for pattern parameters according to the type
   },
 
   "source": {
@@ -173,17 +173,38 @@ PATTERN RULES
 - "hoops"
 - "sash"
 - "checker"
+- "gradient"
 - "solid"
 
 "pattern.args" MUST follow these rules:
+
 - "stripes": args = [count, thickness]
   - Example: stripes(count=9, thickness=18) -> "args": [9, 18]
+  - Both values MUST be integers.
+
 - "hoops": args = [count, thickness]
   - Example: hoops(count=7, thickness=22) -> "args": [7, 22]
+  - Both values MUST be integers.
+
 - "sash": args = [angleDegrees, widthPixels]
   - Example: sash(angle=30, width=80) -> "args": [30, 80]
+  - Both values MUST be integers.
+
 - "checker": args = [cell_width, cell_height]
   - Example: checker(cell_width=30, cell_height=30) -> "args": [30, 30]
+  - Both values MUST be integers.
+
+- "gradient": args = [direction, intensity]
+  - direction MUST be a STRING, exactly one of:
+    "down", "up", "center"
+  - intensity MUST be an INTEGER (NOT a string) between 10 and 500.
+  - Example:
+    gradient(direction="down", intensity=80)
+    -> "pattern": {
+         "type": "gradient",
+         "args": ["down", 80]
+       }
+
 - "solid": args = []
   - No pattern arguments for solid.
 
@@ -194,6 +215,7 @@ Choose reasonable, visually pleasing values:
 - sash width: typically between 40 and 120.
 - checker cell_width: typically between 20 and 80
 - checker cell_height: typically between 20 and 80
+- gradient intensity: typically between 10 and 200
 
 ========================================
 DEFAULT VALUES

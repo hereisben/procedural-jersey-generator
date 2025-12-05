@@ -12,7 +12,6 @@ def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
     pattern = data.get("pattern", {}) or {}
     pattern_type = pattern.get("type", "plain")
     pattern_args: List[Any] = pattern.get("args", []) or []
-    args_str = ", ".join(str(a) for a in pattern_args)
 
     lines: List[str] = []
     lines.append("jersey {")
@@ -24,11 +23,34 @@ def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
     pattern_color = data.get("pattern_color") or data.get("secondary") or data.get("primary") or "#000000"
     if pattern_color:
         lines.append(f"  pattern_color: {pattern_color};")
-    if pattern_type in ("stripes", "hoops", "sash", "checker"):
-        if args_str:
-            lines.append(f"  pattern: {pattern_type}({args_str});")
-        else:
-            lines.append(f"  pattern: {pattern_type}();")
+
+    if pattern_type in ("stripes", "hoops"):
+        if len(pattern_args) >= 2:
+            count = int(pattern_args[0])
+            thickness = int(pattern_args[1])
+            lines.append(f"  pattern: {pattern_type}({count},{thickness});")
+
+    elif pattern_type == "sash":
+        if len(pattern_args) >= 2:
+            angle = int(pattern_args[0])
+            width = int(pattern_args[1])
+            lines.append(f"  pattern: sash({angle},{width});")
+
+    elif pattern_type == "checker":
+        if len(pattern_args) >= 2:
+            cell_w = int(pattern_args[0])
+            cell_h = int(pattern_args[1])
+            lines.append(f"  pattern: checker({cell_w},{cell_h});")
+
+    elif pattern_type == "gradient":
+        if len(pattern_args) >= 2:
+            direction = str(pattern_args[0])
+            intensity = int(pattern_args[1])
+            lines.append(f'  pattern: gradient("{direction}",{intensity});')
+
+    elif pattern_type == "solid":
+        pass
+    
 
     #TEAM
     team = data.get("team", "UNNAMED FC")

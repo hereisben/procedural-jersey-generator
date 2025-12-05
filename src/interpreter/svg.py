@@ -363,6 +363,12 @@ def _pattern_layer(spec: JerseySpec, prim: str, sec: str) -> str:
         cw = int(args[0]) if len(args) >= 1 else 10
         ch = int(args[1]) if len(args) >= 2 else 10
         return _checker(cw, ch, sec)
+    
+    if ident == "gradient":
+        direction = args[0] if len(args) >= 1 else "down"
+        intensity = int(args[1]) if len(args) >= 2 else 70
+        return _gradient(direction, intensity, sec)
+
 
     return ""  # unknown pattern: ignore
 
@@ -418,6 +424,29 @@ def _checker(cw: int, ch: int, color: str) -> str:
                     f'fill="{color}" opacity="1"/>'
                 )
     return "\n".join(rects)
+
+def _gradient(direction: str, intensity: int, color: str) -> str:
+    stops = 25
+    layers = []
+
+    for i in range(stops):
+        if direction == "down":
+            alpha = (i / stops) * (intensity / 100)
+            y = (H / stops) * i
+        elif direction == "up":
+            alpha = ((stops - i) / stops) * (intensity / 100)
+            y = (H / stops) * i
+        else:  # center
+            center_pos = abs(i - stops/2) / (stops/2)
+            alpha = (1 - center_pos) * (intensity / 100)
+            y = (H / stops) * i
+
+        layers.append(
+            f'<rect x="0" y="{y:.1f}" width="{W}" height="{H/stops:.1f}" '
+            f'fill="{color}" opacity="{alpha:.3f}"/>'
+        )
+
+    return "\n".join(layers)
 
 @lru_cache
 def _load_font_base64():

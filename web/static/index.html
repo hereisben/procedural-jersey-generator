@@ -64,7 +64,6 @@
         border: none;
         background: transparent;
       }
-
       textarea {
         width: 100%;
         font-family: ui-monospace, Consolas, monospace;
@@ -73,7 +72,6 @@
         border-radius: 10px;
         padding: 10px;
       }
-
       .bar {
         display: flex;
         gap: 8px;
@@ -159,6 +157,12 @@
       .right {
         grid-area: right;
       }
+      .right,
+      .left {
+        position: sticky;
+        top: 0;
+        align-self: start;
+      }
       .site-footer {
         position: fixed;
         right: 12px;
@@ -171,7 +175,6 @@
         color: #555;
         z-index: 9999;
       }
-
       #ai-suggestion-text {
         font-size: 13px;
         line-height: 1.5;
@@ -182,7 +185,6 @@
         white-space: pre-wrap;
         border: 1px solid #ddd;
       }
-
       @media (max-width: 1200px) {
         body {
           grid-template-columns: 430px 1fr;
@@ -269,6 +271,7 @@
             </div>
           </div>
         </div>
+
         <div class="grid-2">
           <div class="stack">
             <label>Tertiary</label>
@@ -399,6 +402,7 @@
               <option value="hoops">hoops</option>
               <option value="sash">sash</option>
               <option value="checker">checker</option>
+              <option value="gradient">gradient</option>
             </select>
           </div>
           <div id="argBox" class="stack"><!-- dynamic args --></div>
@@ -452,7 +456,6 @@
           </button>
         </div>
 
-        <!-- Simple text suggestion instead of JSON + DSL previews -->
         <div class="stack" style="margin-top: 1rem">
           <label for="ai-suggestion-text" class="muted"
             >AI suggestion summary:</label
@@ -476,11 +479,7 @@
 
       const src = $("#src"),
         err = $("#err"),
-        preview = $("#preview"),
-        live = $("#live");
-
-      // live always on (still keeps checkbox for UI)
-      const liveAlways = true;
+        preview = $("#preview");
 
       // --- fields
       const team = $("#team"),
@@ -531,58 +530,74 @@
 
         if (value === "stripes") {
           argBox.innerHTML = `
-                  <label>Args <span>| ${value}(count, thickness)</span></label>
-                  <div class="row grid-2">
-                    <input id="argCount" type="number" min="1" max="50" value="7" title="count">
-                    <input id="argThickness" type="number" min="2" max="120" value="22" title="thickness (px)">
-                  </div>`;
+            <label>Args <span>| (count, thickness)</span></label>
+            <div class="row grid-2">
+              <input id="argCount" type="number" min="1" max="50" value="7" title="count">
+              <input id="argThickness" type="number" min="2" max="120" value="22" title="thickness (px)">
+            </div>`;
         } else if (value === "hoops") {
           argBox.innerHTML = `
-                  <label>Args <span>| ${value}(count, thickness)</span></label>
-                  <div class="row grid-2">
-                    <input id="argCount" type="number" min="1" max="50" value="9" title="count">
-                    <input id="argThickness" type="number" min="2" max="120" value="22" title="thickness (px)">
-                  </div>`;
+            <label>Args <span>| (count, thickness)</span></label>
+            <div class="row grid-2">
+              <input id="argCount" type="number" min="1" max="50" value="9" title="count">
+              <input id="argThickness" type="number" min="2" max="120" value="22" title="thickness (px)">
+            </div>`;
         } else if (value === "sash") {
           argBox.innerHTML = `
-                  <label>Args <span>| sash(angle, width)</span></label>
-                  <div class="row grid-2">
-                    <input id="argAngle" type="number" min="0" max="85" value="30" title="angle (deg)">
-                    <input id="argWidth" type="number" min="10" max="200" value="80" title="width (px)">
-                  </div>`;
+            <label>Args <span>| (angle, width)</span></label>
+            <div class="row grid-2">
+              <input id="argAngle" type="number" min="0" max="85" value="30" title="angle (deg)">
+              <input id="argWidth" type="number" min="10" max="200" value="80" title="width (px)">
+            </div>`;
         } else if (value === "checker") {
           argBox.innerHTML = `
-                  <label>Args <span>| checker(width, height)</span></label>
-                  <div class="row grid-2">
-                    <input id="argCellWidth" type="number" min="5" max="200" value="30" title="cell width (px)">
-                    <input id="argCellHeight" type="number" min="5" max="200" value="30" title="cell height (px)">
-                  </div>`;
+            <label>Args <span>| (width, height)</span></label>
+            <div class="row grid-2">
+              <input id="argCellWidth" type="number" min="5" max="200" value="30" title="cell width (px)">
+              <input id="argCellHeight" type="number" min="5" max="200" value="30" title="cell height (px)">
+            </div>`;
+        } else if (value === "gradient") {
+          argBox.innerHTML = `
+            <label>Args <span>| (direction, intensity)</span></label>
+            <div class="row grid-2">
+              <select id="argDirection">
+                <option value="center">center</option>
+                <option value="down" selected>down</option>
+                <option value="up">up</option>
+              </select>
+              <input id="argIntensity" type="number" min="10" max="200" value="80" title="intensity (px)">
+            </div>`;
         }
+
         // wire inputs live
-        argBox.querySelectorAll("input").forEach((el) => {
-          el.addEventListener("input", () => {
-            if (liveAlways || live.checked) applyPresetToDSL();
+        argBox.querySelectorAll("input, select").forEach((el) => {
+          ["input", "change"].forEach((evt) => {
+            el.addEventListener(evt, () => {
+              applyPresetToDSL();
+            });
           });
         });
       }
+
       patternSel.addEventListener("change", () => {
         renderArgInputs();
-        if (liveAlways || live.checked) applyPresetToDSL();
+        applyPresetToDSL();
       });
       renderArgInputs();
 
       // sync color picker <-> text with live apply
       const linkColor = (textEl, pickEl) => {
         const sync = () => {
-          if (liveAlways || live.checked) applyPresetToDSL();
+          applyPresetToDSL();
         };
         pickEl.addEventListener("input", () => {
           textEl.value = pickEl.value;
           sync();
         });
         textEl.addEventListener("input", () => {
-          if (/^#[0-9a-fA-F]{6}$/.test(textEl.value))
+          if (/^#[0-9a-fA-F]{6}$/.test(textEl.value)) {
             pickEl.value = textEl.value;
+          }
           sync();
         });
       };
@@ -604,6 +619,7 @@
       function escapeStr(s) {
         return s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
       }
+
       function clamp(n, lo, hi) {
         if (!Number.isFinite(n)) n = lo;
         return Math.max(lo, Math.min(hi, n));
@@ -624,12 +640,12 @@
         const patcol = patterncolor.value.trim();
         if (patcol) parts.push(`  pattern_color: ${hex6(patcol)};`);
 
-        // ---- FONT ----
+        // font
         if (font.value.trim()) {
           parts.push(`  font: "${escapeStr(font.value.trim())}";`);
         }
 
-        // ---- SIZES ----
+        // sizes
         const playerSizeValue = clamp(
           parseInt(playerSize.value || "26", 10),
           8,
@@ -651,7 +667,7 @@
           100
         );
 
-        // ---- COORDS ----
+        // coords
         const px = clamp(parseInt(playerX.value || "365", 10), 0, 1000);
         const py = clamp(parseInt(playerY.value || "85", 10), 0, 1000);
         const nx = clamp(parseInt(numberX.value || "365", 10), 0, 1000);
@@ -661,7 +677,7 @@
         const sx = clamp(parseInt(sponsorX.value || "115", 10), 0, 1000);
         const sy = clamp(parseInt(sponsorY.value || "125", 10), 0, 1000);
 
-        // ---- TEAM ----
+        // team
         if (team.value.trim()) {
           parts.push(
             `  team: "${escapeStr(
@@ -670,7 +686,7 @@
           );
         }
 
-        // ---- PLAYER ----
+        // player
         if (player.value.trim()) {
           parts.push(
             `  player: "${escapeStr(
@@ -679,14 +695,14 @@
           );
         }
 
-        // ---- NUMBER ----
+        // number
         const numRaw = parseInt(number.value || "23", 10);
         const numValue = isNaN(numRaw) ? 23 : clamp(numRaw, 0, 99);
         parts.push(
           `  number: ${numValue}, (${nx}, ${ny}), ${numberSizeValue};`
         );
 
-        // ---- SPONSOR (optional) ----
+        // sponsor (optional)
         if (sponsor && sponsor.value.trim()) {
           parts.push(
             `  sponsor: "${escapeStr(
@@ -695,7 +711,7 @@
           );
         }
 
-        // PATTERN
+        // pattern
         const p = patternSel.value;
         if (p) {
           if (p === "stripes" || p === "hoops") {
@@ -725,6 +741,15 @@
             const ch = clamp(chRaw, 5, 200);
 
             parts.push(`  pattern: checker(${cw},${ch});`);
+          } else if (p === "gradient") {
+            let d = $("#argDirection")?.value.trim() || "center";
+            let iRaw = parseInt($("#argIntensity")?.value || "30", 10);
+
+            if (!Number.isFinite(iRaw)) iRaw = 30;
+
+            const i = clamp(iRaw, 10, 200);
+
+            parts.push(`  pattern: gradient("${d}",${i});`);
           }
         }
 
@@ -741,10 +766,7 @@
           (code.match(
             new RegExp(key + `\\s*:\\s*(#[0-9a-fA-F]{3,6})\\s*;`, "i")
           ) || [])[1] ?? null;
-        const getInt = (key) => {
-          const m = code.match(new RegExp(key + `\\s*:\\s*(\\d+)\\s*;`, "i"));
-          return m ? parseInt(m[1], 10) : null;
-        };
+
         const getPattern = () => {
           const m1 = code.match(
             /pattern\s*:\s*(stripes|hoops)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*;/i
@@ -767,6 +789,16 @@
               kind: "checker",
               cellWidth: +m3[1],
               cellHeight: +m3[2],
+            };
+          }
+          const m4 = code.match(
+            /pattern\s*:\s*gradient\s*\(\s*"([^"]+)"\s*,\s*(\d+)\s*\)\s*;/i
+          );
+          if (m4) {
+            return {
+              kind: "gradient",
+              direction: m4[1],
+              intensity: +m4[2],
             };
           }
           return { kind: "" };
@@ -843,20 +875,24 @@
         if (ast.font !== null) font.value = ast.font;
 
         if (ast.primary) {
-          primary.value = hex6(ast.primary);
-          primaryPick.value = hex6(ast.primary);
+          const v = hex6(ast.primary);
+          primary.value = v;
+          primaryPick.value = v;
         }
         if (ast.secondary) {
-          secondary.value = hex6(ast.secondary);
-          secondaryPick.value = hex6(ast.secondary);
+          const v = hex6(ast.secondary);
+          secondary.value = v;
+          secondaryPick.value = v;
         }
         if (ast.tertiary) {
-          tertiary.value = hex6(ast.tertiary);
-          tertiaryPick.value = hex6(ast.tertiary);
+          const v = hex6(ast.tertiary);
+          tertiary.value = v;
+          tertiaryPick.value = v;
         }
         if (ast.pattern_color) {
-          patterncolor.value = hex6(ast.pattern_color);
-          patterncolorPick.value = hex6(ast.pattern_color);
+          const v = hex6(ast.pattern_color);
+          patterncolor.value = v;
+          patterncolorPick.value = v;
         }
 
         patternSel.value = ast.pattern.kind || "";
@@ -879,6 +915,13 @@
           $("#argCellHeight") &&
             ($("#argCellHeight").value =
               ast.pattern.cellHeight ?? $("#argCellHeight").value);
+        } else if (ast.pattern.kind === "gradient") {
+          $("#argDirection") &&
+            ($("#argDirection").value =
+              ast.pattern.direction ?? $("#argDirection").value);
+          $("#argIntensity") &&
+            ($("#argIntensity").value =
+              ast.pattern.intensity ?? $("#argIntensity").value);
         }
       }
 
@@ -922,7 +965,7 @@
         const el = document.querySelector(sel);
         if (el)
           el.addEventListener("input", () => {
-            if (liveAlways || live.checked) applyPresetToDSL();
+            applyPresetToDSL();
           });
       });
 
@@ -1026,12 +1069,14 @@
           } catch (e) {
             throw new Error("Invalid JSON from server");
           }
+
           console.log(data);
+
           if (!data.ok) {
             throw new Error(data.error || "AI could not generate a jersey.");
           }
 
-          // Update editor & preview via DSL (already auto-synced)
+          // Update editor & preview via DSL
           if (data.dsl) {
             src.value = data.dsl;
             editorToForm();
@@ -1040,8 +1085,6 @@
           // Build a single natural-language sentence for the user
           if (data.spec) {
             const s = data.spec;
-
-            // Team + player + sponsor
             const parts = [];
 
             if (s.team) {
@@ -1060,26 +1103,17 @@
               parts.push(`with ${s.sponsor} as the main sponsor`);
             }
 
-            // Colors
             const colorBits = [];
-            if (s.primary) {
-              colorBits.push(`primary color ${s.primary}`);
-            }
-            if (s.secondary) {
-              colorBits.push(`secondary color ${s.secondary}`);
-            }
-            if (s.tertiary) {
-              colorBits.push(`tertiary accent ${s.tertiary}`);
-            }
-            if (s.pattern_color) {
+            if (s.primary) colorBits.push(`primary color ${s.primary}`);
+            if (s.secondary) colorBits.push(`secondary color ${s.secondary}`);
+            if (s.tertiary) colorBits.push(`tertiary accent ${s.tertiary}`);
+            if (s.pattern_color)
               colorBits.push(`pattern color ${s.pattern_color}`);
-            }
 
             if (colorBits.length > 0) {
               parts.push("using " + colorBits.join(", "));
             }
 
-            // Pattern
             if (s.pattern && s.pattern.type) {
               const argsText = Array.isArray(s.pattern.args)
                 ? s.pattern.args.join(", ")
@@ -1091,7 +1125,6 @@
               }
             }
 
-            // Font
             if (s.font) {
               parts.push(`set in the "${s.font}" font`);
             }
