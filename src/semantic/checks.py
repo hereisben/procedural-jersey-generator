@@ -113,6 +113,13 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
                     raise SemanticError("brush: thickness must be between 1 and 200")
                 if ((r is not None and r < 5) or (r is not None and r > 200)):
                     raise SemanticError("brush: roughness must be between 5 and 200")
+            if (ident == "waves"):
+                a = s.args[0]
+                l = s.args[1]
+                if ((a is not None and a < 2) or (a is not None and a > 200)):
+                    raise SemanticError("waves: amplitude must be between 2 and 200")
+                if ((l is not None and l < 1) or (l is not None and l > 100)):
+                    raise SemanticError("waves: wavelength must be between 1 and 100")
 
             spec.pattern = (ident, s.args[:])
 

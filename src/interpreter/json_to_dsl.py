@@ -54,6 +54,12 @@ def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
             roughness = int(pattern_args[1])
             lines.append(f"  pattern: brush({thickness},{roughness});")
 
+    elif pattern_type == "waves":
+        if len(pattern_args) >= 2:
+            amplitude = int(pattern_args[0])
+            wavelength = int(pattern_args[1])
+            lines.append(f"  pattern: waves({amplitude},{wavelength});")
+
     elif pattern_type == "solid":
         pass
     

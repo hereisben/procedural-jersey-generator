@@ -404,6 +404,7 @@
               <option value="checker">checker</option>
               <option value="gradient">gradient</option>
               <option value="brush">brush</option>
+              <option value="waves">waves</option>
             </select>
           </div>
           <div id="argBox" class="stack"><!-- dynamic args --></div>
@@ -574,6 +575,13 @@
             <div class="row grid-2">
               <input id="argThickness" type="number" min="1" max="200" value="20" title="count">
               <input id="argRoughness" type="number" min="5" max="200" value="150" title="thickness (px)">
+            </div>`;
+        } else if (value === "waves") {
+          argBox.innerHTML = `
+            <label>Args <span>| (amplitude, wavelength)</span></label>
+            <div class="row grid-2">
+              <input id="argAmp" type="number" min="2" max="200" value="120" title="amplitude">
+              <input id="argLength" type="number" min="1" max="100" value="1" title="wave length (px)">
             </div>`;
         }
 
@@ -765,10 +773,21 @@
             if (!Number.isFinite(tRaw)) tRaw = 50;
             if (!Number.isFinite(rRaw)) rRaw = 15;
 
-            const t = clamp(tRaw, 5, 200);
+            const t = clamp(tRaw, 1, 200);
             const r = clamp(rRaw, 5, 200);
 
             parts.push(`  pattern: brush(${t},${r});`);
+          } else if (p === "waves") {
+            let aRaw = parseInt($("#argAmp")?.value || "120", 10);
+            let lRaw = parseInt($("#argLength")?.value || "1", 10);
+
+            if (!Number.isFinite(aRaw)) aRaw = 120;
+            if (!Number.isFinite(lRaw)) lRaw = 1;
+
+            const a = clamp(aRaw, 2, 200);
+            const l = clamp(lRaw, 1, 100);
+
+            parts.push(`  pattern: waves(${a},${l});`);
           }
         }
 
@@ -828,6 +847,16 @@
               kind: "brush",
               thickness: +m5[1],
               roughness: +m5[2],
+            };
+          }
+          const m6 = code.match(
+            /pattern\s*:\s*waves\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*;/i
+          );
+          if (m6) {
+            return {
+              kind: "waves",
+              amplitude: +m6[1],
+              wavelength: +m6[2],
             };
           }
           return { kind: "" };
@@ -958,6 +987,12 @@
           $("#argRoughness") &&
             ($("#argRoughness").value =
               ast.pattern.roughness ?? $("#argRoughness").value);
+        } else if (ast.pattern.kind === "waves") {
+          $("#argAmp") &&
+            ($("#argAmp").value = ast.pattern.amplitude ?? $("#argAmp").value);
+          $("#argLength") &&
+            ($("#argLength").value =
+              ast.pattern.wavelength ?? $("#argLength").value);
         }
       }
 

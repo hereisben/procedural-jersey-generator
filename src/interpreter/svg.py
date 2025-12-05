@@ -1,5 +1,6 @@
 # src/interpreter/svg.py
 from dataclasses import dataclass
+import math
 from ..semantic.checks import JerseySpec
 import base64
 from functools import lru_cache
@@ -373,6 +374,11 @@ def _pattern_layer(spec: JerseySpec, prim: str, sec: str) -> str:
         thickness = args[0] if len(args) >= 1 else 50
         roughness = args[1] if len(args) >= 2 else 15
         return _brush(thickness, roughness, sec)
+    
+    if ident == "waves":
+        amplitude = args[0] if len(args) >= 1 else 10
+        wavelength = args[1] if len(args) >= 2 else 40
+        return _waves(amplitude, wavelength, sec)
 
     return ""  # unknown pattern: ignore
 
@@ -496,6 +502,36 @@ def _brush(thickness: int, roughness: int, color: str) -> str:
         )
 
     return "\n".join(strokes)
+
+def _waves(amplitude: int, wavelength: int, color: str) -> str:
+    amplitude = max(1, amplitude)
+    wavelength = max(4, wavelength)
+
+    dx = wavelength / 16
+
+    row_gap = amplitude * 2
+    rows = int(H / row_gap) + 2
+
+    paths: list[str] = []
+
+    for row in range(rows):
+        base_y = row * row_gap + amplitude
+        x = 0.0
+        y = base_y
+        d_parts: list[str] = [f"M {x:.1f},{y:.1f}"]
+
+        while x <= W + dx:
+            y = base_y + amplitude * math.sin(2 * math.pi * x / wavelength)
+            d_parts.append(f"L {x:.1f},{y:.1f}")
+            x += dx
+
+        d = " ".join(d_parts)
+        paths.append(
+            f'<path d="{d}" fill="none" stroke="{color}" '
+            f'stroke-width="2" opacity="0.9"/>'
+        )
+
+    return "\n".join(paths)
 
 @lru_cache
 def _load_font_base64():

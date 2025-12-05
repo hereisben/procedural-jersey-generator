@@ -81,7 +81,7 @@ Your ONLY job:
   "sponsor_size": integer,  // required
 
   "pattern": {
-    "type": string,         // one of: "stripes", "hoops", "sash", "checker", "gradient", "brush", "solid"
+    "type": string,         // one of: "stripes", "hoops", "sash", "checker", "gradient", "brush", "waves", "solid"
     "args": array           // numbers/strings for pattern parameters according to the type
   },
 
@@ -175,6 +175,7 @@ PATTERN RULES
 - "checker"
 - "gradient"
 - "brush"
+- "waves"
 - "solid"
 
 "pattern.args" MUST follow these rules:
@@ -210,6 +211,10 @@ PATTERN RULES
   - Example: brush(thickness=20, roughness=200) -> "args": [20, 200]
   - Both values MUST be integers.
 
+- "waves": args = [amplitude, wavelength]
+  - Example: brush(amplitude=120, wavelength=1) -> "args": [120, 1]
+  - Both values MUST be integers.
+
 - "solid": args = []
   - No pattern arguments for solid.
 
@@ -223,6 +228,8 @@ Choose reasonable, visually pleasing values:
 - gradient intensity: typically between 10 and 200
 - brush thickness: typically between 1 and 200
 - brush roughness: typically between 5 and 200
+- waves amplitude: typically between 1 and 200
+- waves wavelength: typically between 1 and 100
 
 ========================================
 DEFAULT VALUES
