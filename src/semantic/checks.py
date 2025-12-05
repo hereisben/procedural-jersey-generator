@@ -120,6 +120,13 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
                     raise SemanticError("waves: amplitude must be between 2 and 200")
                 if ((l is not None and l < 1) or (l is not None and l > 100)):
                     raise SemanticError("waves: wavelength must be between 1 and 100")
+            if (ident == "camo"):
+                c = s.args[0]
+                v = s.args[1]
+                if ((c is not None and c < 1) or (c is not None and c > 100)):
+                    raise SemanticError("camo: cell must be between 1 and 100")
+                if ((v is not None and v < 0) or (v is not None and v > 100)):
+                    raise SemanticError("camo: variance must be between 0 and 100")
 
             spec.pattern = (ident, s.args[:])
 

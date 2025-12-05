@@ -60,6 +60,12 @@ def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
             wavelength = int(pattern_args[1])
             lines.append(f"  pattern: waves({amplitude},{wavelength});")
 
+    elif pattern_type == "camo":
+        if len(pattern_args) >= 2:
+            cell = int(pattern_args[0])
+            variance = int(pattern_args[1])
+            lines.append(f"  pattern: camo({cell},{variance});")
+
     elif pattern_type == "solid":
         pass
     

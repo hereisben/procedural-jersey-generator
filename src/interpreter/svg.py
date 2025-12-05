@@ -1,6 +1,7 @@
 # src/interpreter/svg.py
 from dataclasses import dataclass
 import math
+import random
 from ..semantic.checks import JerseySpec
 import base64
 from functools import lru_cache
@@ -379,6 +380,11 @@ def _pattern_layer(spec: JerseySpec, prim: str, sec: str) -> str:
         amplitude = args[0] if len(args) >= 1 else 10
         wavelength = args[1] if len(args) >= 2 else 40
         return _waves(amplitude, wavelength, sec)
+    
+    if ident == "camo":
+        cell = args[0] if len(args) >= 1 else 12
+        variance = args[1] if len(args) >= 2 else 50
+        return _camo(cell, variance, sec, prim)
 
     return ""  # unknown pattern: ignore
 
@@ -532,6 +538,41 @@ def _waves(amplitude: int, wavelength: int, color: str) -> str:
         )
 
     return "\n".join(paths)
+
+def _camo(cell: int, variance: int, color: str, base: str) -> str:
+    cell = max(3, cell)
+    variance = max(0, min(100, variance))
+    prob = variance / 100.0 
+
+    cols = W // cell + 2
+    rows = H // cell + 2
+
+    seed = f"camo-{cell}-{variance}-{color}-{base}"
+    rng = random.Random(seed)
+
+    rects: list[str] = []
+
+    for r in range(rows):
+        for c in range(cols):
+            if rng.random() < prob:
+                w_cells = 1 + rng.randrange(3)
+                h_cells = 1 + rng.randrange(2)
+
+                x = c * cell
+                y = r * cell
+                w = w_cells * cell
+                h = h_cells * cell
+
+                fill = color if rng.random() < 0.7 else base
+
+                opacity = 0.55 + 0.35 * rng.random()
+
+                rects.append(
+                    f'<rect x="{x}" y="{y}" width="{w}" height="{h}" '
+                    f'fill="{fill}" opacity="{opacity:.2f}"/>'
+                )
+
+    return "\n".join(rects)
 
 @lru_cache
 def _load_font_base64():

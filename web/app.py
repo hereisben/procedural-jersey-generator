@@ -81,7 +81,7 @@ Your ONLY job:
   "sponsor_size": integer,  // required
 
   "pattern": {
-    "type": string,         // one of: "stripes", "hoops", "sash", "checker", "gradient", "brush", "waves", "solid"
+    "type": string,         // one of: "stripes", "hoops", "sash", "checker", "gradient", "brush", "waves", "camo", "solid"
     "args": array           // numbers/strings for pattern parameters according to the type
   },
 
@@ -176,6 +176,7 @@ PATTERN RULES
 - "gradient"
 - "brush"
 - "waves"
+- "camo"
 - "solid"
 
 "pattern.args" MUST follow these rules:
@@ -215,6 +216,10 @@ PATTERN RULES
   - Example: brush(amplitude=120, wavelength=1) -> "args": [120, 1]
   - Both values MUST be integers.
 
+- "camo": args = [cell, variance]
+  - Example: brush(cell=12, variance=50) -> "args": [12, 50]
+  - Both values MUST be integers.
+
 - "solid": args = []
   - No pattern arguments for solid.
 
@@ -230,6 +235,8 @@ Choose reasonable, visually pleasing values:
 - brush roughness: typically between 5 and 200
 - waves amplitude: typically between 1 and 200
 - waves wavelength: typically between 1 and 100
+- camo cell: typically between 1 and 100
+- camo variance: typically between 0 and 100
 
 ========================================
 DEFAULT VALUES

@@ -405,6 +405,7 @@
               <option value="gradient">gradient</option>
               <option value="brush">brush</option>
               <option value="waves">waves</option>
+              <option value="camo">camo</option>
             </select>
           </div>
           <div id="argBox" class="stack"><!-- dynamic args --></div>
@@ -582,6 +583,13 @@
             <div class="row grid-2">
               <input id="argAmp" type="number" min="2" max="200" value="120" title="amplitude">
               <input id="argLength" type="number" min="1" max="100" value="1" title="wave length (px)">
+            </div>`;
+        } else if (value === "camo") {
+          argBox.innerHTML = `
+            <label>Args <span>| (cell, variance)</span></label>
+            <div class="row grid-2">
+              <input id="argCell" type="number" min="1" max="100" value="12" title="cell (px)">
+              <input id="argVariance" type="number" min="0" max="100" value="50" title="variance">
             </div>`;
         }
 
@@ -788,6 +796,17 @@
             const l = clamp(lRaw, 1, 100);
 
             parts.push(`  pattern: waves(${a},${l});`);
+          } else if (p === "camo") {
+            let cRaw = parseInt($("#argCell")?.value || "12", 10);
+            let vRaw = parseInt($("#argVariance")?.value || "50", 10);
+
+            if (!Number.isFinite(cRaw)) cRaw = 12;
+            if (!Number.isFinite(vRaw)) vRaw = 50;
+
+            const c = clamp(cRaw, 1, 100);
+            const v = clamp(vRaw, 0, 100);
+
+            parts.push(`  pattern: camo(${c},${v});`);
           }
         }
 
@@ -857,6 +876,16 @@
               kind: "waves",
               amplitude: +m6[1],
               wavelength: +m6[2],
+            };
+          }
+          const m7 = code.match(
+            /pattern\s*:\s*camo\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*;/i
+          );
+          if (m7) {
+            return {
+              kind: "camo",
+              cell: +m7[1],
+              variance: +m7[2],
             };
           }
           return { kind: "" };
@@ -993,6 +1022,12 @@
           $("#argLength") &&
             ($("#argLength").value =
               ast.pattern.wavelength ?? $("#argLength").value);
+        } else if (ast.pattern.kind === "camo") {
+          $("#argCell") &&
+            ($("#argCell").value = ast.pattern.cell ?? $("#argCell").value);
+          $("#argVariance") &&
+            ($("#argVariance").value =
+              ast.pattern.variance ?? $("#argVariance").value);
         }
       }
 
