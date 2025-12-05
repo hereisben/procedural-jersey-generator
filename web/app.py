@@ -81,7 +81,7 @@ Your ONLY job:
   "sponsor_size": integer,  // required
 
   "pattern": {
-    "type": string,         // one of: "stripes", "hoops", "sash", "checker", "gradient", "solid"
+    "type": string,         // one of: "stripes", "hoops", "sash", "checker", "gradient", "brush", "solid"
     "args": array           // numbers/strings for pattern parameters according to the type
   },
 
@@ -174,6 +174,7 @@ PATTERN RULES
 - "sash"
 - "checker"
 - "gradient"
+- "brush"
 - "solid"
 
 "pattern.args" MUST follow these rules:
@@ -205,17 +206,23 @@ PATTERN RULES
          "args": ["down", 80]
        }
 
+- "brush": args = [thickness, roughness]
+  - Example: brush(thickness=20, roughness=200) -> "args": [20, 200]
+  - Both values MUST be integers.
+
 - "solid": args = []
   - No pattern arguments for solid.
 
 Choose reasonable, visually pleasing values:
-- count: usually between 5 and 15.
-- thickness: usually between 10 and 40.
+- stripe/hoop count: usually between 5 and 15.
+- stripe/hoop thickness: usually between 10 and 40.
 - sash angle: typically between 20 and 60 degrees.
 - sash width: typically between 40 and 120.
 - checker cell_width: typically between 20 and 80
 - checker cell_height: typically between 20 and 80
 - gradient intensity: typically between 10 and 200
+- brush thickness: typically between 1 and 200
+- brush roughness: typically between 5 and 200
 
 ========================================
 DEFAULT VALUES

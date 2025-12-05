@@ -368,7 +368,11 @@ def _pattern_layer(spec: JerseySpec, prim: str, sec: str) -> str:
         direction = args[0] if len(args) >= 1 else "down"
         intensity = int(args[1]) if len(args) >= 2 else 70
         return _gradient(direction, intensity, sec)
-
+    
+    if ident == "brush":
+        thickness = args[0] if len(args) >= 1 else 50
+        roughness = args[1] if len(args) >= 2 else 15
+        return _brush(thickness, roughness, sec)
 
     return ""  # unknown pattern: ignore
 
@@ -447,6 +451,51 @@ def _gradient(direction: str, intensity: int, color: str) -> str:
         )
 
     return "\n".join(layers)
+
+def _brush(thickness: int, roughness: int, color: str) -> str:
+    strokes: list[str] = []
+
+    num_strokes = 3
+
+    start_y = H * 0.25
+    gap = thickness * 1.4
+
+    thickness = max(5, thickness)
+    roughness = max(0, roughness)
+
+    for i in range(num_strokes):
+        y_center = start_y + i * gap
+        y_base_top = y_center - thickness / 2
+        y_base_bottom = y_center + thickness / 2
+
+        step = max(15, min(80, thickness * 1.5)) 
+        pts_top: list[str] = []
+        pts_bottom: list[str] = []
+
+        x = -60 
+        idx = 0
+        while x <= W + 60:
+            sign = 1 if idx % 2 == 0 else -1
+            jitter_top = sign * roughness
+            jitter_bottom = sign * (roughness * 0.5)
+
+            y_top = y_base_top + jitter_top
+            y_bottom = y_base_bottom + jitter_bottom
+
+            pts_top.append(f"{x},{y_top:.1f}")
+            pts_bottom.append(f"{x},{y_bottom:.1f}")
+
+            x += step
+            idx += 1
+
+        all_pts = pts_top + pts_bottom[::-1]
+        d = "M " + " L ".join(all_pts) + " Z"
+
+        strokes.append(
+            f'<path d="{d}" fill="{color}" opacity="0.85"/>'
+        )
+
+    return "\n".join(strokes)
 
 @lru_cache
 def _load_font_base64():

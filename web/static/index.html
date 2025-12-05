@@ -403,6 +403,7 @@
               <option value="sash">sash</option>
               <option value="checker">checker</option>
               <option value="gradient">gradient</option>
+              <option value="brush">brush</option>
             </select>
           </div>
           <div id="argBox" class="stack"><!-- dynamic args --></div>
@@ -566,6 +567,13 @@
                 <option value="up">up</option>
               </select>
               <input id="argIntensity" type="number" min="10" max="200" value="80" title="intensity (px)">
+            </div>`;
+        } else if (value === "brush") {
+          argBox.innerHTML = `
+            <label>Args <span>| (thickness, roughness)</span></label>
+            <div class="row grid-2">
+              <input id="argThickness" type="number" min="1" max="200" value="20" title="count">
+              <input id="argRoughness" type="number" min="5" max="200" value="150" title="thickness (px)">
             </div>`;
         }
 
@@ -750,6 +758,17 @@
             const i = clamp(iRaw, 10, 200);
 
             parts.push(`  pattern: gradient("${d}",${i});`);
+          } else if (p === "brush") {
+            let tRaw = parseInt($("#argThickness")?.value || "20", 10);
+            let rRaw = parseInt($("#argRoughness")?.value || "150", 10);
+
+            if (!Number.isFinite(tRaw)) tRaw = 50;
+            if (!Number.isFinite(rRaw)) rRaw = 15;
+
+            const t = clamp(tRaw, 5, 200);
+            const r = clamp(rRaw, 5, 200);
+
+            parts.push(`  pattern: brush(${t},${r});`);
           }
         }
 
@@ -799,6 +818,16 @@
               kind: "gradient",
               direction: m4[1],
               intensity: +m4[2],
+            };
+          }
+          const m5 = code.match(
+            /pattern\s*:\s*brush\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*;/i
+          );
+          if (m5) {
+            return {
+              kind: "brush",
+              thickness: +m5[1],
+              roughness: +m5[2],
             };
           }
           return { kind: "" };
@@ -922,6 +951,13 @@
           $("#argIntensity") &&
             ($("#argIntensity").value =
               ast.pattern.intensity ?? $("#argIntensity").value);
+        } else if (ast.pattern.kind === "brush") {
+          $("#argThickness") &&
+            ($("#argThickness").value =
+              ast.pattern.thickness ?? $("#argThickness").value);
+          $("#argRoughness") &&
+            ($("#argRoughness").value =
+              ast.pattern.roughness ?? $("#argRoughness").value);
         }
       }
 

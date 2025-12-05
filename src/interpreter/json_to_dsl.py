@@ -48,6 +48,12 @@ def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
             intensity = int(pattern_args[1])
             lines.append(f'  pattern: gradient("{direction}",{intensity});')
 
+    elif pattern_type == "brush":
+        if len(pattern_args) >= 2:
+            thickness = int(pattern_args[0])
+            roughness = int(pattern_args[1])
+            lines.append(f"  pattern: brush({thickness},{roughness});")
+
     elif pattern_type == "solid":
         pass
     

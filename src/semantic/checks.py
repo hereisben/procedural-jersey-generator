@@ -79,6 +79,20 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
             ident = s.ident.strip()
             if not ident:
                 raise SemanticError("pattern: ident must be non-empty")
+            if (ident == "stripes" or ident == "hoops"):
+                c = s.args[0]
+                t = s.args[1]
+                if ((c is not None and c < 1) or (c is not None and c > 50)):
+                    raise SemanticError("stripes/hoops: count must be between 1 and 50")
+                if ((t is not None and t < 2) or (t is not None and t > 120)):
+                    raise SemanticError("stripes/hoops: thickness must be between 2 and 120")
+            if (ident == "sash"):
+                a = s.args[0]
+                w = s.args[1]
+                if ((a is not None and a < 0) or (a is not None and a > 85)):
+                    raise SemanticError("sash: angle must be between 0 and 85")
+                if ((w is not None and w < 10) or (w is not None and w > 200)):
+                    raise SemanticError("sash: width must be between 10 and 200")
             if (ident == "checker"):
                 w = s.args[0]
                 h = s.args[1]
@@ -92,6 +106,14 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
                     raise SemanticError("gradient: intensity must greater than 10")
                 if (i is not None and i > 200):
                     raise SemanticError("gradient: intensity must less than 200")
+            if (ident == "brush"):
+                t = s.args[0]
+                r = s.args[1]
+                if ((t is not None and t < 1) or (t is not None and t > 200)):
+                    raise SemanticError("brush: thickness must be between 1 and 200")
+                if ((r is not None and r < 5) or (r is not None and r > 200)):
+                    raise SemanticError("brush: roughness must be between 5 and 200")
+
             spec.pattern = (ident, s.args[:])
 
         else:
