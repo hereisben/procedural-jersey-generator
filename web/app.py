@@ -81,7 +81,7 @@ Your ONLY job:
   "sponsor_size": integer,  // required
 
   "pattern": {
-    "type": string,         // one of: "stripes", "hoops", "sash", "checker", "gradient", "brush", "waves", "camo", "halftone_dots", "topo", "solid"
+    "type": string,         // one of: "stripes", "hoops", "sash", "checker", "gradient", "brush", "waves", "camo", "halftone_dots", "topo", "half_split", "solid"
     "args": array           // numbers/strings for pattern parameters according to the type
   },
 
@@ -179,6 +179,7 @@ PATTERN RULES
 - "camo"
 - "halftone_dots"
 - "topo"
+- "half_split"
 - "solid"
 
 "pattern.args" MUST follow these rules:
@@ -230,6 +231,17 @@ PATTERN RULES
   - Example: brush(levels=12, base_gap=18) -> "args": [12, 18]
   - Both values MUST be integers.
 
+- "half_split": args = [direction, ratio]
+  - direction MUST be a STRING, exactly one of:
+    "vertical", "horizontal"
+  - ratio MUST be an INTEGER (NOT a string) between 1 and 99.
+  - Example:
+    half_split(direction="vertical", ratio=50)
+    -> "pattern": {
+         "type": "half_split",
+         "args": ["vertical", 50]
+       }
+
 - "solid": args = []
   - No pattern arguments for solid.
 
@@ -251,6 +263,7 @@ Choose reasonable, visually pleasing values:
 - halftone_dots spacing: typically between 1 and 100
 - topo levels: typically between 1 and 100
 - topo base_gap: typically between 1 and 100
+- half_split ratio: typically between 1 and 99
 
 ========================================
 DEFAULT VALUES

@@ -288,15 +288,25 @@
             </div>
           </div>
         </div>
-
-        <div class="stack">
-          <label>Font Family</label>
-          <input
-            id="font"
-            type="text"
-            placeholder="Sport Scholars Outline"
-            value="Sport Scholars Outline"
-          />
+        <div class="grid-2">
+          <div class="stack">
+            <label>Pattern</label>
+            <select id="pattern">
+              <option value="">(none)</option>
+              <option value="stripes" selected>stripes</option>
+              <option value="hoops">hoops</option>
+              <option value="sash">sash</option>
+              <option value="checker">checker</option>
+              <option value="gradient">gradient</option>
+              <option value="brush">brush</option>
+              <option value="waves">waves</option>
+              <option value="camo">camo</option>
+              <option value="halftone_dots">halftone dots</option>
+              <option value="topo">topo</option>
+              <option value="half_split">half split</option>
+            </select>
+          </div>
+          <div id="argBox" class="stack"><!-- dynamic args --></div>
         </div>
 
         <div class="stack">
@@ -393,24 +403,14 @@
           </div>
         </div>
 
-        <div class="grid-2">
-          <div class="stack">
-            <label>Pattern</label>
-            <select id="pattern">
-              <option value="">(none)</option>
-              <option value="stripes" selected>stripes</option>
-              <option value="hoops">hoops</option>
-              <option value="sash">sash</option>
-              <option value="checker">checker</option>
-              <option value="gradient">gradient</option>
-              <option value="brush">brush</option>
-              <option value="waves">waves</option>
-              <option value="camo">camo</option>
-              <option value="halftone_dots">halftone dots</option>
-              <option value="topo">topo</option>
-            </select>
-          </div>
-          <div id="argBox" class="stack"><!-- dynamic args --></div>
+        <div class="stack">
+          <label>Font Family</label>
+          <input
+            id="font"
+            type="text"
+            placeholder="Sport Scholars Outline"
+            value="Sport Scholars Outline"
+          />
         </div>
 
         <div class="bar">
@@ -606,6 +606,16 @@
             <div class="row grid-2">
               <input id="argLevels" type="number" min="1" max="100" value="12" title="levels">
               <input id="argBaseGap" type="number" min="1" max="100" value="18" title="base_gap (px)">
+            </div>`;
+        } else if (value === "half_split") {
+          argBox.innerHTML = `
+            <label>Args <span>| (direction, ratio)</span></label>
+            <div class="row grid-2">
+              <select id="argDirection">
+                <option value="horizontal">horizontal</option>
+                <option value="vertical" selected>vertical</option>
+              </select>
+              <input id="argRatio" type="number" min="1" max="99" value="50" title="ratio">
             </div>`;
         }
         // wire inputs live
@@ -844,6 +854,15 @@
             const g = clamp(gRaw, 1, 100);
 
             parts.push(`  pattern: topo(${l},${g});`);
+          } else if (p === "half_split") {
+            let d = $("#argDirection")?.value || "vertical";
+            let rRaw = parseInt($("#argRatio").value || "50", 10);
+
+            if (!Number.isFinite(rRaw)) rRaw = 50;
+
+            const r = clamp(rRaw, 1, 99);
+
+            parts.push(`  pattern: half_split("${d}",${r});`);
           }
         }
 
@@ -941,6 +960,16 @@
               kind: "topo",
               levels: +m9[1],
               base_gap: +m9[2],
+            };
+          }
+          const m10 = code.match(
+            /pattern\s*:\s*half_split\s*\(\s*"([^"]+)"\s*,\s*(\d+)\s*\)\s*;/i
+          );
+          if (m10) {
+            return {
+              kind: "half_split",
+              direction: m10[1],
+              ratio: +m10[2],
             };
           }
           return { kind: "" };
@@ -1097,6 +1126,12 @@
           $("#argBaseGap") &&
             ($("#argBaseGap").value =
               ast.pattern.base_gap ?? $("#argBaseGap").value);
+        } else if (ast.pattern.kind === "half_split") {
+          $("#argDirection") &&
+            ($("#argDirection").value =
+              ast.pattern.direction ?? $("#argDirection").value);
+          $("#argRatio") &&
+            ($("#argRatio").value = ast.pattern.ratio ?? $("#argRatio").value);
         }
       }
 

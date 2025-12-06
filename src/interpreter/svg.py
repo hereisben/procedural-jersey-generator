@@ -395,6 +395,13 @@ def _pattern_layer(spec: JerseySpec, prim: str, sec: str) -> str:
         levels = args[0] if len(args) >= 1 else 12
         base_gap = args[1] if len(args) >= 2 else 18
         return _topo(levels, base_gap, sec)
+    
+    if ident == "half_split":
+        direction = args[0] if len(args) >= 1 else "vertical"
+        ratio = int(args[1]) if len(args) >= 2 else 50
+        ratio = max(1, min(99, ratio))
+        return _half_split(direction, ratio, prim, sec)
+
 
     return ""  # unknown pattern: ignore
 
@@ -675,6 +682,77 @@ def _topo(levels: int, base_gap: int, color: str) -> str:
 
     return "\n".join(paths)
 
+def _half_split(direction: str, ratio: int, color1: str, color2: str) -> str:
+    r = ratio / 100.0
+    elems: list[str] = []
+
+    if direction == "horizontal":
+        JERSEY_TOP = 0.0
+        JERSEY_BOTTOM = 210.0
+
+        jersey_height = JERSEY_BOTTOM - JERSEY_TOP
+        split_y = JERSEY_TOP + jersey_height * r
+
+        elems.append(
+            f'<rect x="0" y="{JERSEY_TOP}" '
+            f'width="{W}" height="{split_y - JERSEY_TOP}" '
+            f'fill="{color1}" opacity="1"/>'
+        )
+        elems.append(
+            f'<rect x="0" y="{split_y}" '
+            f'width="{W}" height="{JERSEY_BOTTOM - split_y}" '
+            f'fill="{color2}" opacity="1"/>'
+        )
+        elems.append(
+            f'<rect x="0" y="{split_y - 1}" '
+            f'width="{W}" height="2" '
+            f'fill="#000000" opacity="1"/>'
+        )
+
+    else:  # vertical
+        half_w = W / 2
+
+        front_left  = 0
+        front_right = half_w
+        back_left   = half_w
+        back_right  = W
+
+        front_split = front_left + half_w * r
+        back_split = back_right - half_w * r
+
+        # --- FRONT ---
+        elems.append(
+            f'<rect x="{front_left}" y="0" '
+            f'width="{front_split - front_left}" height="{H}" '
+            f'fill="{color1}" opacity="1"/>'
+        )
+        elems.append(
+            f'<rect x="{front_split}" y="0" '
+            f'width="{front_right - front_split}" height="{H}" '
+            f'fill="{color2}" opacity="1"/>'
+        )
+        elems.append(
+            f'<rect x="{front_split - 1}" y="0" width="2" height="{H}" '
+            f'fill="#000000" opacity="1"/>'
+        )
+
+        # --- BACK ---
+        elems.append(
+            f'<rect x="{back_left}" y="0" '
+            f'width="{back_split - back_left}" height="{H}" '
+            f'fill="{color2}" opacity="1"/>'
+        )
+        elems.append(
+            f'<rect x="{back_split}" y="0" '
+            f'width="{back_right - back_split}" height="{H}" '
+            f'fill="{color1}" opacity="1"/>'
+        )
+        elems.append(
+            f'<rect x="{back_split - 1}" y="0" width="2" height="{H}" '
+            f'fill="#000000" opacity="1"/>'
+        )
+
+    return "\n".join(elems)
 
 @lru_cache
 def _load_font_base64():

@@ -77,6 +77,12 @@ def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
             levels = int(pattern_args[0])
             base_gap = int(pattern_args[1])
             lines.append(f"  pattern: topo({levels},{base_gap});")
+    
+    elif pattern_type == "half_split":
+        if len(pattern_args) >= 2:
+            direction = str(pattern_args[0])
+            ratio = int(pattern_args[1])
+            lines.append(f"  pattern: half_split({direction},{ratio});")
 
     elif pattern_type == "solid":
         pass

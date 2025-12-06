@@ -80,6 +80,8 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
             if not ident:
                 raise SemanticError("pattern: ident must be non-empty")
             if (ident == "stripes" or ident == "hoops"):
+                if len(s.args) != 2:
+                    raise SemanticError("stripes/hoops: requires (count, thickness)")
                 c = s.args[0]
                 t = s.args[1]
                 if ((c is not None and c < 1) or (c is not None and c > 50)):
@@ -87,6 +89,8 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
                 if ((t is not None and t < 2) or (t is not None and t > 120)):
                     raise SemanticError("stripes/hoops: thickness must be between 2 and 120")
             if (ident == "sash"):
+                if len(s.args) != 2:
+                    raise SemanticError("sash: requires (angle, width)")
                 a = s.args[0]
                 w = s.args[1]
                 if ((a is not None and a < 0) or (a is not None and a > 85)):
@@ -94,6 +98,8 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
                 if ((w is not None and w < 10) or (w is not None and w > 200)):
                     raise SemanticError("sash: width must be between 10 and 200")
             if (ident == "checker"):
+                if len(s.args) != 2:
+                    raise SemanticError("checker: requires (width, height)")
                 w = s.args[0]
                 h = s.args[1]
                 if ((w is not None and w < 5) or (h is not None and h < 5)):
@@ -101,12 +107,19 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
                 if ((w is not None and w > 200) or (h is not None and h > 200)):
                     raise SemanticError("checker: width/height must less than 200")
             if (ident == "gradient"):
+                if len(s.args) != 2:
+                    raise SemanticError("gradient: requires (direction, intensity)")
+                d = s.args[0]
                 i = s.args[1]
+                if ((d is not None) and (d not in ("up", "down", "center"))):
+                    raise SemanticError("gradient: direction must be either 'up', 'down', or 'center'")
                 if (i is not None and i < 10):
                     raise SemanticError("gradient: intensity must greater than 10")
                 if (i is not None and i > 200):
                     raise SemanticError("gradient: intensity must less than 200")
             if (ident == "brush"):
+                if len(s.args) != 2:
+                    raise SemanticError("brush: requires (thickness, roughness)")
                 t = s.args[0]
                 r = s.args[1]
                 if ((t is not None and t < 1) or (t is not None and t > 200)):
@@ -114,6 +127,8 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
                 if ((r is not None and r < 5) or (r is not None and r > 200)):
                     raise SemanticError("brush: roughness must be between 5 and 200")
             if (ident == "waves"):
+                if len(s.args) != 2:
+                    raise SemanticError("waves: requires (amplitude, wavelength)")
                 a = s.args[0]
                 l = s.args[1]
                 if ((a is not None and a < 2) or (a is not None and a > 200)):
@@ -121,6 +136,8 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
                 if ((l is not None and l < 1) or (l is not None and l > 100)):
                     raise SemanticError("waves: wavelength must be between 1 and 100")
             if (ident == "camo"):
+                if len(s.args) != 2:
+                    raise SemanticError("camo: requires (cell, variance)")
                 c = s.args[0]
                 v = s.args[1]
                 if ((c is not None and c < 1) or (c is not None and c > 100)):
@@ -128,17 +145,28 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
                 if ((v is not None and v < 0) or (v is not None and v > 100)):
                     raise SemanticError("camo: variance must be between 0 and 100")
             if (ident == "halftone_dots"):
+                if len(s.args) != 2:
+                    raise SemanticError("halftone_dots: requires (dot_size, spacing)")
                 d = s.args[0]
                 sp = s.args[1]
                 if ((d is not None and s is not None) and ((d < 1 or d > 100) or (sp < 1 or sp > 100))):
-                    raise SemanticError("halftone_dots: spacing/dot_size must be between 1 and 100")
-                
+                    raise SemanticError("halftone_dots: spacing/dot_size must be between 1 and 100")  
             if (ident == "topo"):
+                if len(s.args) != 2:
+                    raise SemanticError("topo: requires (levels, base_gap)")
                 l = s.args[0]
                 g = s.args[1]
                 if ((l is not None and l is not None) and ((g < 1 or g > 100) or (g < 1 or g > 100))):
                     raise SemanticError("topo: levels/base_gap must be between 1 and 100")
-
+            if (ident == "half_split"):
+                if len(s.args) != 2:
+                    raise SemanticError("half_split: requires (direction, ratio)")
+                d = s.args[0]
+                r = s.args[1]
+                if ((d is not None) and (d not in ("vertical", "horizontal"))):
+                    raise SemanticError("half_split: direction must be either 'vertical' or 'horizontal'")
+                if ((r is not None) and (r < 1 or r > 99)):
+                    raise SemanticError("half_split: ratio must be between 1 and 99")
             spec.pattern = (ident, s.args[:])
 
         else:
