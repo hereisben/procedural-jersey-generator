@@ -132,6 +132,12 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
                 sp = s.args[1]
                 if ((d is not None and s is not None) and ((d < 1 or d > 100) or (sp < 1 or sp > 100))):
                     raise SemanticError("halftone_dots: spacing/dot_size must be between 1 and 100")
+                
+            if (ident == "topo"):
+                l = s.args[0]
+                g = s.args[1]
+                if ((l is not None and l is not None) and ((g < 1 or g > 100) or (g < 1 or g > 100))):
+                    raise SemanticError("topo: levels/base_gap must be between 1 and 100")
 
             spec.pattern = (ident, s.args[:])
 

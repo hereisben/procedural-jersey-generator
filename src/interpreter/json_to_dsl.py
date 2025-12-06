@@ -71,6 +71,12 @@ def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
             dot_size = int(pattern_args[0])
             spacing = int(pattern_args[1])
             lines.append(f"  pattern: halftone_dots({dot_size},{spacing});")
+    
+    elif pattern_type == "topo":
+        if len(pattern_args) >= 2:
+            levels = int(pattern_args[0])
+            base_gap = int(pattern_args[1])
+            lines.append(f"  pattern: topo({levels},{base_gap});")
 
     elif pattern_type == "solid":
         pass

@@ -391,6 +391,11 @@ def _pattern_layer(spec: JerseySpec, prim: str, sec: str) -> str:
         spacing = args[1] if len(args) >= 2 else 12
         return _halftone_dots(dot_size, spacing, sec)
 
+    if ident == "topo":
+        levels = args[0] if len(args) >= 1 else 12
+        base_gap = args[1] if len(args) >= 2 else 18
+        return _topo(levels, base_gap, sec)
+
     return ""  # unknown pattern: ignore
 
 # Full-canvas stripes/hoops; clipPath hides overflow beyond jersey
@@ -609,6 +614,66 @@ def _halftone_dots(dot_size: int, spacing: int, color: str) -> str:
             )
 
     return "\n".join(circles)
+
+def _topo(levels: int, base_gap: int, color: str) -> str:
+    centers = [
+        (115.0, 110.0),  # front jersey center
+        (365.0, 110.0),  # back jersey center
+    ]
+
+    max_r = math.hypot(W, H)
+    levels = max(1, levels)
+
+    paths: list[str] = []
+
+    for ci, (cx, cy) in enumerate(centers):
+        seed = random.random() * 1000 + ci * 317.0
+
+        radii: list[float] = []
+        r = random.uniform(base_gap * 0.4, base_gap * 1.4)
+        for _ in range(levels):
+            radii.append(min(r, max_r * 1.2))
+            r += random.uniform(base_gap * 0.6, base_gap * 1.8)
+
+        for level, base_r in enumerate(radii, start=1):
+            d_parts: list[str] = []
+            first = True
+
+            for deg in range(0, 360, 2):
+                th = math.radians(deg)
+
+                x0 = math.cos(th)
+                y0 = math.sin(th)
+
+                distort  = 10 * math.sin(3 * th + level * 0.5 + seed)
+                distort += 14 * math.sin(5 * th - level * 0.8 + seed * 0.3)
+                distort +=  8 * math.sin(2 * th + seed * 0.7)
+                distort +=  6 * math.sin(7 * th + level * 0.2)
+                distort += 10 * math.sin((x0 + y0) * 3 + seed)
+                distort +=  8 * math.sin((x0 - y0) * 4 + seed * 1.3)
+
+                r_cur = base_r + distort
+
+                x = cx + r_cur * math.cos(th)
+                y = cy + r_cur * math.sin(th)
+
+                if first:
+                    d_parts.append(f"M {x:.1f},{y:.1f}")
+                    first = False
+                else:
+                    d_parts.append(f"L {x:.1f},{y:.1f}")
+
+            d = " ".join(d_parts) + " Z"
+
+            thk = 0.30 + random.random() * 1.9 
+            op  = 0.65 + random.random() * 0.30
+
+            paths.append(
+                f'<path d="{d}" fill="none" stroke="{color}" '
+                f'stroke-width="{thk:.2f}" opacity="{op:.2f}"/>'
+            )
+
+    return "\n".join(paths)
 
 
 @lru_cache

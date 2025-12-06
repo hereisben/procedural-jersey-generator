@@ -407,6 +407,7 @@
               <option value="waves">waves</option>
               <option value="camo">camo</option>
               <option value="halftone_dots">halftone dots</option>
+              <option value="topo">topo</option>
             </select>
           </div>
           <div id="argBox" class="stack"><!-- dynamic args --></div>
@@ -598,6 +599,13 @@
             <div class="row grid-2">
               <input id="argDotSize" type="number" min="1" max="100" value="6" title="dot_size (px)">
               <input id="argSpacing" type="number" min="1" max="100" value="12" title="spacing (px)">
+            </div>`;
+        } else if (value === "topo") {
+          argBox.innerHTML = `
+            <label>Args <span>| (levels, base_gap)</span></label>
+            <div class="row grid-2">
+              <input id="argLevels" type="number" min="1" max="100" value="12" title="levels">
+              <input id="argBaseGap" type="number" min="1" max="100" value="18" title="base_gap (px)">
             </div>`;
         }
         // wire inputs live
@@ -825,6 +833,17 @@
             const s = clamp(sRaw, 1, 100);
 
             parts.push(`  pattern: halftone_dots(${d},${s});`);
+          } else if (p === "topo") {
+            let lRaw = parseInt($("#argLevels")?.value || "12", 10);
+            let gRaw = parseInt($("#argBaseGap")?.value || "18", 10);
+
+            if (!Number.isFinite(lRaw)) lRaw = 12;
+            if (!Number.isFinite(gRaw)) gRaw = 18;
+
+            const l = clamp(lRaw, 1, 100);
+            const g = clamp(gRaw, 1, 100);
+
+            parts.push(`  pattern: topo(${l},${g});`);
           }
         }
 
@@ -914,6 +933,14 @@
               kind: "halftone_dots",
               dot_size: +m8[1],
               spacing: +m8[2],
+            };
+          }
+          const m9 = code.match(/pattern\s*:\s*topo\s*\(\s*(\d+)\s*\)\s*;/i);
+          if (m9) {
+            return {
+              kind: "topo",
+              levels: +m9[1],
+              base_gap: +m9[2],
             };
           }
           return { kind: "" };
@@ -1063,6 +1090,13 @@
           $("#argSpacing") &&
             ($("#argSpacing").value =
               ast.pattern.spacing ?? $("#argSpacing").value);
+        } else if (ast.pattern.kind === "topo") {
+          $("#argLevels") &&
+            ($("#argLevels").value =
+              ast.pattern.levels ?? $("#argLevels").value);
+          $("#argBaseGap") &&
+            ($("#argBaseGap").value =
+              ast.pattern.base_gap ?? $("#argBaseGap").value);
         }
       }
 
