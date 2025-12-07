@@ -1,7 +1,5 @@
----
+# 🧵 Procedural Jersey Generator
 
-```markdown
-# 🧵 Procedural Jersey Generator  
 ### _A Domain-Specific Language (DSL) & Compiler for Procedural Soccer Kit Design_
 
 ⚽ **Procedural Jersey Generator** is a miniature compiler that turns a small domain-specific language (DSL) into fully rendered SVG soccer jerseys.  
