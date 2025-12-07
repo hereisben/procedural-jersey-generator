@@ -112,7 +112,7 @@ gradient("up" | "down" | "center", intensity)
 ```txt
 brush(thickness, roughness)
 waves(amplitude, wavelength)
-digital_camo(cell_size, variance)
+camo(cell_size, variance)
 ```
 
 All patterns are clipped to jersey geometry and validated semantically.
@@ -287,9 +287,4 @@ Exported SVGs include embedded metadata:
 
 ```
 © 2025 Ben Nguyen — Procedural Jersey Generator
-```
-
-```
-
----
 ```
