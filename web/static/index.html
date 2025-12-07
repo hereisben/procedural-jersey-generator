@@ -476,6 +476,7 @@
       <div id="preview" class="preview"></div>
       <div class="bar" style="margin-top: 10px">
         <button class="primary" id="downloadSvg">Download SVG</button>
+        <button class="primary" id="downloadPng">Download PNG</button>
       </div>
     </div>
 
@@ -485,6 +486,8 @@
       const src = $("#src"),
         err = $("#err"),
         preview = $("#preview");
+
+      let lastSvgMarkup = null;
 
       // --- fields
       const team = $("#team"),
@@ -1217,6 +1220,9 @@
               preview.innerHTML = "";
               return;
             }
+
+            lastSvgMarkup = j.svg;
+
             const blob = new Blob([j.svg], { type: "image/svg+xml" });
             const url = URL.createObjectURL(blob);
             preview.innerHTML = `<object data="${url}" type="image/svg+xml" style="width:100%;height:100%"></object>`;
@@ -1232,6 +1238,84 @@
         a.href = url;
         a.download = "jersey.svg";
         a.click();
+      };
+
+      $("#downloadPng").onclick = () => {
+        if (!lastSvgMarkup) {
+          alert("No jersey rendered yet.");
+          return;
+        }
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(lastSvgMarkup, "image/svg+xml");
+        const svgElem = doc.documentElement; // <svg ...>
+
+        const serializer = new XMLSerializer();
+        let svgString = serializer.serializeToString(svgElem);
+
+        if (!svgString.startsWith("<?xml")) {
+          svgString = '<?xml version="1.0" standalone="no"?>\n' + svgString;
+        }
+
+        const svgBlob = new Blob([svgString], {
+          type: "image/svg+xml;charset=utf-8",
+        });
+        const url = URL.createObjectURL(svgBlob);
+        const img = new Image();
+
+        img.onload = function () {
+          let width = 800;
+          let height = 800;
+
+          const vb = svgElem.viewBox && svgElem.viewBox.baseVal;
+          if (vb && vb.width && vb.height) {
+            width = vb.width;
+            height = vb.height;
+          } else {
+            const wAttr = parseFloat(svgElem.getAttribute("width"));
+            const hAttr = parseFloat(svgElem.getAttribute("height"));
+            if (Number.isFinite(wAttr)) width = wAttr;
+            if (Number.isFinite(hAttr)) height = hAttr;
+          }
+
+          const scale = 4;
+          width *= scale;
+          height *= scale;
+
+          const canvas = document.getElementById("pngCanvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+
+          ctx.clearRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const pngData = canvas.toDataURL("image/png");
+
+          const a = document.createElement("a");
+          a.href = pngData;
+
+          const teamNameInput = document.getElementById("team");
+          const teamName =
+            teamNameInput && teamNameInput.value
+              ? teamNameInput.value.replace(/\s+/g, "_")
+              : "jersey";
+
+          a.download = teamName + ".png";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+
+          URL.revokeObjectURL(url);
+        };
+
+        img.onerror = function (err) {
+          console.error("Error loading SVG for PNG export:", err);
+          URL.revokeObjectURL(url);
+          alert("Could not convert SVG to PNG.");
+        };
+
+        img.src = url;
       };
 
       // initial load: preset -> DSL -> render (no loop)
@@ -1369,5 +1453,6 @@
     <div class="site-footer">
       © 2025 Ben Nguyen — Procedural Jersey Generator
     </div>
+    <canvas id="pngCanvas" style="display: none"></canvas>
   </body>
 </html>
