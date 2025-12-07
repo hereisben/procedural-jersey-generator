@@ -52,6 +52,9 @@ class Lexer:
         self.col = 1
 
     def _advance(self, n: int):
+        """
+        Advance the current position by n characters, updating line and column.
+        """
         segment = self.src[self.pos:self.pos+n]
         line_breaks = segment.count('\n')
         if line_breaks:
@@ -63,10 +66,17 @@ class Lexer:
         self.pos += n
 
     def _match(self, pattern: re.Pattern):
+        """
+        Attempt to match the given regex pattern at the current position.
+        Returns the matched string if successful, otherwise None.
+        """
         m = pattern.match(self.src, self.pos)
         return m.group(0) if m else None
 
     def tokens(self) -> List[Token]:
+        """
+        Tokenize the source string and return a list of Token objects.
+        """
         toks: List[Token] = []
         n = len(self.src)
         while self.pos < n:

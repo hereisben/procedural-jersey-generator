@@ -96,7 +96,7 @@ def main():
         svg = render_svg(spec, RenderOptions(show_debug=False))
         out_svg = Path(args.out) if args.out else path.with_suffix(".svg")
         out_svg.write_text(svg, encoding="utf-8")
-        print(f"✅ SVG written to {out_svg}")
+        print(f"SVG written to {out_svg}")
 
     # Optionally print grammar even when a file is provided
     if args.show_grammar:

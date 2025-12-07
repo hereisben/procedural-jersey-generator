@@ -9,10 +9,11 @@ from pathlib import Path
 
 SVG_HEADER = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>"""
 W, H = 484, 342
-TEXT_MAX_WIDTH_TEAM = 120.0
-TEXT_MAX_WIDTH_SPONSOR = 120.0
-TEXT_MAX_WIDTH_PLAYER = 140.0
+TEXT_MAX_WIDTH_TEAM = 120.0 # Maximum width for team text
+TEXT_MAX_WIDTH_SPONSOR = 120.0 # Maximum width for sponsor text
+TEXT_MAX_WIDTH_PLAYER = 140.0 # Maximum width for player text
 
+# --- jersey geometry paths ---
 FRONT_BODY_PATH = (
     "M 131.85528,19.171174 C 139.53629,16.610837 141.64632,-0.014767775 "
     "147.46173,1.2097492 C 174.36045,6.8736572 208.82829,25.734133 "
@@ -115,11 +116,16 @@ LOGO_PATH = (
     "m230.58 2.4199l-68.84 0.0039-68.847 0.002-18.594 18.308-18.594 18.307 0.055 42.57 0.054 42.569 18.166 17.96 18.168 17.95h64.902 64.9l8.25 7.95 8.26 7.94v28.5 28.49l-8.18 8.19-8.18 8.18h-21.79-21.78v19.34 19.34h29.86 29.86l18.8-18.52 18.81-18.53v-46.44-46.45l-17.44-17.27-17.43-17.27h-67.67-67.67l-7.972-7.96-7.973-7.96-0.019-26.358-0.018-26.354 7.137-6.896 7.135-6.897 58.83-0.01 58.83-0.009 5.88 5.824 5.88 5.824v12.451 12.45h20.18 20.19v-37.612-37.613l-16.15-0.0001h-16.15v5.4121 5.414l-5.42-5.414-5.43-5.4121zm-116.65 76.074v15.088 15.088h12.75 12.75v4.25 4.25h16.57 16.58v-4.68-4.67h13.81 13.82v-14.664-14.662h-43.14-43.14zm25.5 87.976v71.93 71.92l-7.97 7.98-7.96 7.97h-34.646-34.647l-6.264-6.27-6.263-6.28v-13.49-13.49h-19.551-19.549l0.0001 35.49v35.49h17.213 17.211v-6.48-6.47l6.486 6.47 6.487 6.48 44.408-0.02 44.405-0.02 16.9-16.72 16.89-16.73v-78.88-78.88h-16.58-16.57zm-87.125 43.35v39.52 39.53h18.275 18.275v-5.2-5.2l4.788 4.78 4.787 4.77h17.31 17.31v-19.34-19.34h-15.76-15.76l-5.915-5.59-5.91-5.59v-14.17-14.17h-18.701-18.699z"
 )
 
+#--- SVG Rendering ---
 @dataclass
 class RenderOptions:
     show_debug: bool = False
 
 def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
+    """
+    Renders the JerseySpec into an SVG string.
+    """
+    # Use default options if none provided
     opts = opts or RenderOptions()
     prim = spec.primary or "#0033AA"
     sec  = spec.secondary or "#FFCC00"
@@ -153,18 +159,18 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     </defs>
     '''
 
-    front_shorts_fill = f'<path d="{front_shorts}" fill="{sec}"/>\n'
-    back_shorts_fill  = f'<path d="{back_shorts}"  fill="{sec}"/>\n'
+    front_shorts_fill = f'<path d="{front_shorts}" fill="{sec}"/>\n' # shorts base color
+    back_shorts_fill  = f'<path d="{back_shorts}"  fill="{sec}"/>\n' # shorts base color
 
-    front_jersey_fill = f'<path d="{front_body}"  fill="{prim}"/>\n'
-    back_jersey_fill  = f'<path d="{back_body}"   fill="{prim}"/>\n'
+    front_jersey_fill = f'<path d="{front_body}"  fill="{prim}"/>\n' # jersey base color
+    back_jersey_fill  = f'<path d="{back_body}"   fill="{prim}"/>\n' # jersey base color
+    front_short_decor = f'<path d="{front_decors}" fill="{prim}"/>\n' # jersey decor
+    back_short_decor = f'<path d="{back_decors}" fill="{prim}"/>\n' # jersey decor
+    logo_decor = f'<path d="{logo}" transform="scale(0.07) translate(1900, 700)" fill="#ffffff"/>\n' # logo decor
 
-    front_short_decor = f'<path d="{front_decors}" fill="{prim}"/>\n'
-    back_short_decor = f'<path d="{back_decors}" fill="{prim}"/>\n'
-    logo_decor = f'<path d="{logo}" transform="scale(0.07) translate(1900, 700)" fill="#ffffff"/>\n'
+    patcol = spec.pattern_color or "#FFFFFF" # pattern color
 
-    patcol = spec.pattern_color or "#FFFFFF"
-
+    #--- pattern layers ---
     front_jersey_pattern = (
         f'<g clip-path="url(#frontJerseyClip)">\n'
         f'{_pattern_layer(spec, prim, patcol)}\n'
@@ -179,6 +185,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     front_shorts_pattern = ""
     back_shorts_pattern = ""
 
+    #--- trims ---
     trims = (
         f'<path d="{FRONT_TRIM_TOP_PATH}"    fill="{ter}"/>\n'
         f'<path d="{FRONT_TRIM_BOTTOM_PATH}" fill="{ter}"/>\n'
@@ -207,6 +214,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     front_cx = 115
     back_cx  = 365
 
+    # Front (left): sponsor + number
     front_sponsor = (
     _svg_text_wrapped(
         spec.sponsor.text,
@@ -278,7 +286,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         font=spec.font,
         max_width=TEXT_MAX_WIDTH_TEAM,
     )
-
+    
     debug = (
         f'<rect x="0" y="0" width="{W}" height="{H}" fill="none" stroke="magenta" stroke-dasharray="4,4"/>'
         if (opts and opts.show_debug) else ""
@@ -296,6 +304,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     
     font_style_block = _font_block()
 
+    #--- final assembly ---
     return (
         f"{SVG_HEADER}\n"
         f'<svg xmlns="http://www.w3.org/2000/svg" '
@@ -333,12 +342,19 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     )
 
 def _estimate_text_width(txt: str, font_size: float) -> float:
+    """
+    Estimates the width of the given text string at the specified font size.
+    This is a rough approximation and may not be accurate for all fonts."""
     if not txt:
         return 0.0
     AVG_CHAR_FACTOR = 0.6
     return len(txt) * font_size * AVG_CHAR_FACTOR
 
 def _wrap_text_words(txt: str, max_width: float, font_size: float) -> list[str]:
+    """
+    Wraps the given text string into multiple lines so that each line does not exceed the specified maximum width.
+    Returns a list of lines.
+    """
     words = txt.split()
     if not words:
         return []
@@ -359,6 +375,9 @@ def _wrap_text_words(txt: str, max_width: float, font_size: float) -> list[str]:
     return lines
 
 def _svg_text(txt: str, x: float, y: float, size: int, anchor: str, weight: str, fill: str, font: str, letter_spacing: str | None = None) -> str:
+    """
+    Generates an SVG text element with the specified properties.
+    """
     if txt is None:
         return ""
     ls = f' letter-spacing="{letter_spacing}"' if letter_spacing else ""
@@ -377,13 +396,18 @@ def _svg_text_wrapped(
     line_height: float = 1.1,
     letter_spacing: str | None = None,
 ) -> str:
+    """
+    Generates an SVG text element with the specified properties, wrapping the text if it exceeds the maximum width.
+    """
     if txt is None:
         return ""
 
+    # Wrap text into multiple lines
     lines = _wrap_text_words(txt, max_width, size)
     if not lines:
         return ""
 
+    # Build SVG text element with tspans for each line
     ls = f' letter-spacing="{letter_spacing}"' if letter_spacing else ""
     parts: list[str] = [
         f'<text x="{x}" y="{y}" text-anchor="{anchor}" font-weight="{weight}" '
@@ -391,6 +415,7 @@ def _svg_text_wrapped(
     ]
 
     first = True
+    # Add each line as a tspan element
     for line in lines:
         if first:
             parts.append(f'<tspan x="{x}" dy="0">{_escape(line)}</tspan>')
@@ -404,6 +429,9 @@ def _svg_text_wrapped(
     return "".join(parts)
 
 def _escape(s: str) -> str:
+    """
+    Escapes special characters in the given string for use in SVG.
+    """
     return (
         s.replace("&", "&amp;")
          .replace("<", "&lt;")
@@ -413,6 +441,9 @@ def _escape(s: str) -> str:
     )
 
 def _pattern_layer(spec: JerseySpec, prim: str, sec: str) -> str:
+    """
+    Generates the SVG for the specified pattern layer of the jersey.
+    """
     if not spec.pattern:
         return ""
     ident, args = spec.pattern
@@ -477,28 +508,39 @@ def _pattern_layer(spec: JerseySpec, prim: str, sec: str) -> str:
 
     return ""  # unknown pattern: ignore
 
-# Full-canvas stripes/hoops; clipPath hides overflow beyond jersey
+#--- pattern implementations ---
 def _vertical_stripes(count: int, thickness: int, color: str) -> str:
+    """
+    Generates vertical stripes for the jersey.
+    """
     left, right, top, bottom = 0, W, 0, H
     span = right - left
     gap = span / max(count, 1)
     rects = []
+    # Generate stripes
     for i in range(count):
         x = left + i * gap + (gap - thickness) / 2
         rects.append(f'<rect x="{x:.1f}" y="{top}" width="{thickness}" height="{bottom-top}" fill="{color}" opacity="1"/>')
     return "\n".join(rects)
 
 def _horizontal_hoops(count: int, thickness: int, color: str) -> str:
+    """
+    Generates horizontal hoops for the jersey.
+    """
     left, right, top, bottom = 0, W, 0, H
     span = bottom - top
     gap = span / max(count, 1)
     rects = []
+    # Generate hoops
     for i in range(count):
         y = top + i * gap + (gap - thickness) / 2
         rects.append(f'<rect x="{left}" y="{y:.1f}" width="{right-left}" height="{thickness}" fill="{color}" opacity="1"/>')
     return "\n".join(rects)
 
 def _sash(angle: int, width: int, color: str) -> str:
+    """
+    Generates a sash for the jersey.
+    """
     cx, cy = W/2, H/2 + 40
     return (
         f'<g transform="translate({cx},{cy}) rotate({-abs(angle)}) translate({-cx}, {-cy})">'
@@ -510,18 +552,22 @@ def _sash(angle: int, width: int, color: str) -> str:
     )
 
 def _checker(cw: int, ch: int, color: str) -> str:
+    """
+    Generates a checkerboard pattern for the jersey.
+    """
     left, right, top, bottom = 0, W, 0, H
 
-    cw = max(1, cw)
-    ch = max(1, ch)
+    cw = max(1, cw) # ensure positive
+    ch = max(1, ch) # ensure positive
 
-    cols = (right - left) // cw + 2
-    rows = (bottom - top) // ch + 2
+    cols = (right - left) // cw + 2 # extra to cover edges
+    rows = (bottom - top) // ch + 2 # extra to cover edges
 
     rects: list[str] = []
+    # Generate checker squares
     for r in range(rows):
         for c in range(cols):
-            if (r + c) % 2 == 0:
+            if (r + c) % 2 == 0: # alternate squares
                 x = left + c * cw
                 y = top + r * ch
                 rects.append(
@@ -531,9 +577,12 @@ def _checker(cw: int, ch: int, color: str) -> str:
     return "\n".join(rects)
 
 def _gradient(direction: str, intensity: int, color: str) -> str:
+    """
+    Generates a gradient pattern for the jersey
+    """
     stops = 25
     layers = []
-
+    # Generate gradient layers
     for i in range(stops):
         if direction == "down":
             alpha = (i / stops) * (intensity / 100)
@@ -554,6 +603,9 @@ def _gradient(direction: str, intensity: int, color: str) -> str:
     return "\n".join(layers)
 
 def _brush(thickness: int, roughness: int, color: str) -> str:
+    """
+    Generates a brush stroke pattern for the jersey.
+    """
     strokes: list[str] = []
 
     num_strokes = 3
@@ -564,17 +616,19 @@ def _brush(thickness: int, roughness: int, color: str) -> str:
     thickness = max(5, thickness)
     roughness = max(0, roughness)
 
+    # Generate brush strokes
     for i in range(num_strokes):
         y_center = start_y + i * gap
         y_base_top = y_center - thickness / 2
         y_base_bottom = y_center + thickness / 2
 
-        step = max(15, min(80, thickness * 1.5)) 
+        step = max(15, min(80, thickness * 1.5)) # step size for points
         pts_top: list[str] = []
         pts_bottom: list[str] = []
 
         x = -60 
         idx = 0
+        # Generate points with jitter
         while x <= W + 60:
             sign = 1 if idx % 2 == 0 else -1
             jitter_top = sign * roughness
@@ -599,6 +653,9 @@ def _brush(thickness: int, roughness: int, color: str) -> str:
     return "\n".join(strokes)
 
 def _waves(amplitude: int, wavelength: int, color: str) -> str:
+    """
+    Generates a wave pattern for the jersey.
+    """
     amplitude = max(1, amplitude)
     wavelength = max(4, wavelength)
 
@@ -609,12 +666,14 @@ def _waves(amplitude: int, wavelength: int, color: str) -> str:
 
     paths: list[str] = []
 
+    # Generate wave paths
     for row in range(rows):
         base_y = row * row_gap + amplitude
         x = 0.0
         y = base_y
         d_parts: list[str] = [f"M {x:.1f},{y:.1f}"]
 
+        # Create wave using sine function
         while x <= W + dx:
             y = base_y + amplitude * math.sin(2 * math.pi * x / wavelength)
             d_parts.append(f"L {x:.1f},{y:.1f}")
@@ -629,6 +688,9 @@ def _waves(amplitude: int, wavelength: int, color: str) -> str:
     return "\n".join(paths)
 
 def _camo(cell: int, variance: int, color: str, base: str) -> str:
+    """
+    Generates a camouflage pattern for the jersey.
+    """
     cell = max(3, cell)
     variance = max(0, min(100, variance))
     prob = variance / 100.0 
@@ -636,16 +698,18 @@ def _camo(cell: int, variance: int, color: str, base: str) -> str:
     cols = W // cell + 2
     rows = H // cell + 2
 
-    seed = f"camo-{cell}-{variance}-{color}-{base}"
-    rng = random.Random(seed)
+    seed = f"camo-{cell}-{variance}-{color}-{base}" # unique seed
+    rng = random.Random(seed) # reproducible randomness
 
     rects: list[str] = []
 
+    # Generate camo blobs
     for r in range(rows):
         for c in range(cols):
+            # Decide randomly whether to place a blob
             if rng.random() < prob:
-                w_cells = 1 + rng.randrange(3)
-                h_cells = 1 + rng.randrange(2)
+                w_cells = 1 + rng.randrange(3) # 1 to 3 cells wide
+                h_cells = 1 + rng.randrange(2) # 1 to 2 cells high
 
                 x = c * cell
                 y = r * cell
@@ -664,26 +728,31 @@ def _camo(cell: int, variance: int, color: str, base: str) -> str:
     return "\n".join(rects)
 
 def _halftone_dots(dot_size: int, spacing: int, color: str) -> str:
+    """
+    Generates a halftone dot pattern for the jersey.
+    """
     dot_size = max(1, dot_size)
     spacing = max(dot_size, spacing)
 
-    radius = dot_size / 2
+    radius = dot_size / 2 # radius of each dot
 
     left, right, top, bottom = 0, W, 0, H
     width  = right - left
     height = bottom - top
 
-    cols = int(width  // spacing) + 1
-    rows = int(height // spacing) + 1
+    cols = int(width  // spacing) + 1 # number of columns
+    rows = int(height // spacing) + 1 # number of rows
 
     circles: list[str] = []
     max_row = max(rows - 1, 1)
 
+    # Generate dots with varying opacity
     for r in range(rows):
         t = r / max_row
         alpha = 0.2 + 0.8 * t
 
         cy = top + r * spacing + spacing / 2
+        # Generate each dot in the row
         for c in range(cols):
             cx = left + c * spacing + spacing / 2
 
@@ -695,29 +764,34 @@ def _halftone_dots(dot_size: int, spacing: int, color: str) -> str:
     return "\n".join(circles)
 
 def _topo(levels: int, base_gap: int, color: str) -> str:
+    """
+    Generates a topographic pattern for the jersey.
+    """
     centers = [
         (115.0, 110.0),  # front jersey center
         (365.0, 110.0),  # back jersey center
     ]
 
-    max_r = math.hypot(W, H)
-    levels = max(1, levels)
+    max_r = math.hypot(W, H) # maximum radius to cover jersey
+    levels = max(1, levels) # ensure at least 1 level
 
     paths: list[str] = []
 
+    # Generate contour lines
     for ci, (cx, cy) in enumerate(centers):
-        seed = random.random() * 1000 + ci * 317.0
+        seed = random.random() * 1000 + ci * 317.0 # unique seed for each center
 
         radii: list[float] = []
-        r = random.uniform(base_gap * 0.4, base_gap * 1.4)
+        r = random.uniform(base_gap * 0.4, base_gap * 1.4) # initial radius
+        # Generate radii for contour levels
         for _ in range(levels):
             radii.append(min(r, max_r * 1.2))
             r += random.uniform(base_gap * 0.6, base_gap * 1.8)
-
+        # Create contour lines for each radius
         for level, base_r in enumerate(radii, start=1):
             d_parts: list[str] = []
             first = True
-
+            # Generate distorted circle for contour line
             for deg in range(0, 360, 2):
                 th = math.radians(deg)
 
@@ -755,12 +829,15 @@ def _topo(levels: int, base_gap: int, color: str) -> str:
     return "\n".join(paths)
 
 def _half_split(direction: str, ratio: int, color1: str, color2: str) -> str:
+    """
+    Generates a half-split pattern for the jersey.
+    """
     r = ratio / 100.0
     elems: list[str] = []
 
     if direction == "horizontal":
-        JERSEY_TOP = 0.0
-        JERSEY_BOTTOM = 210.0
+        JERSEY_TOP = 0.0 # approximate top y-coordinate of jersey
+        JERSEY_BOTTOM = 210.0 # approximate bottom y-coordinate of jersey
 
         jersey_height = JERSEY_BOTTOM - JERSEY_TOP
         split_y = JERSEY_TOP + jersey_height * r
@@ -833,6 +910,9 @@ def _load_font_base64():
     return base64.b64encode(fpath.read_bytes()).decode("ascii")
 
 def _font_block():
+    """
+    Returns the SVG style block embedding the Sport Scholars Outline font.
+    """
     font_b64 = _load_font_base64()
     return f"""
   <style>

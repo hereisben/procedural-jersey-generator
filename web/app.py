@@ -351,6 +351,9 @@ OUTPUT RULES
 app = Flask(__name__)
 
 def compile_and_render(jersey_text: str) -> str:
+    """
+    Compile jersey DSL text to SVG string.
+    """
     toks = Lexer(jersey_text).tokens()
     ast = Parser(toks).parse()
     spec = validate_jersey(ast)
@@ -358,6 +361,9 @@ def compile_and_render(jersey_text: str) -> str:
     return svg
 
 def compile_dsl_to_svg(dsl_code: str) -> str:
+    """
+    Compile jersey DSL code to SVG string.
+    """
     return compile_and_render(dsl_code)
 
 def fake_ai_suggest_jersey(message: str, image_path: str | None = None) -> dict:
@@ -390,6 +396,9 @@ def fake_ai_suggest_jersey(message: str, image_path: str | None = None) -> dict:
     }
 
 def real_ai_suggest_jersey(message: str) -> dict:
+    """
+    Use the AI model to suggest a jersey design based on the message.
+    """
     completion = groq_client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[
@@ -407,6 +416,9 @@ def real_ai_suggest_jersey(message: str) -> dict:
 
 @app.post("/api/render")
 def api_render():
+    """
+    Render jersey DSL to SVG.
+    """
     data = request.get_json(silent=True) or {}
     jersey_text = data.get("source", "")
     if not jersey_text.strip():
@@ -427,6 +439,9 @@ def index():
 
 @app.route("/api/ai/chat-jersey", methods=["POST"])
 def ai_chat_jersey():
+    """
+    Use the AI model to suggest a jersey design based on the prompt.
+    """
     data = request.get_json(force=True, silent=True) or {}
 
     prompt = (data.get("prompt") or "").strip()
@@ -461,10 +476,6 @@ def ai_chat_jersey():
         svg=svg_xml,
         approximationNote=ai_json.get("approximationNote", ""),
     )
-
-
-
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

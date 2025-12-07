@@ -31,12 +31,18 @@ class JerseySpec:
 
 
 def _hex6(c: str) -> str:
+    """
+    Convert a hex color to #RRGGBB format.
+    """
     c = c.upper()
     if len(c) == 4:  # #RGB → #RRGGBB
         return f"#{c[1]*2}{c[2]*2}{c[3]*2}"
     return c
 
 def validate_jersey(ast: JerseyNode) -> JerseySpec:
+    """
+    Validate a JerseyNode AST and return a JerseySpec.
+    """
     seen: Dict[str, int] = {}
     spec = JerseySpec()
 
@@ -186,6 +192,9 @@ def validate_jersey(ast: JerseyNode) -> JerseySpec:
     return spec
 
 def _check_dup(key: str, seen: Dict[str, int]):
+    """
+    Check for duplicate declarations of a key.
+    """
     if key in seen:
         raise SemanticError(f"Duplicate declaration for '{key}'")
     seen[key] = 1

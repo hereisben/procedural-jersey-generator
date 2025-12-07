@@ -23,9 +23,16 @@ class Parser:
 
     # --- cursor helpers
     def _peek(self) -> Optional[Token]:
+        """
+        Return the current token without advancing the cursor.
+        """
         return self.tokens[self.i] if self.i < len(self.tokens) else None
 
     def _match(self, *types: str) -> Optional[Token]:
+        """
+        If the current token matches one of the given types, advance the cursor and return it.
+        Otherwise, return None.
+        """
         tok = self._peek()
         if tok and tok.type in types:
             self.i += 1
@@ -33,6 +40,10 @@ class Parser:
         return None
 
     def _expect(self, typ: str, msg: str) -> Token:
+        """
+        If the current token matches the given type, advance the cursor and return it.
+        Otherwise, raise a ParserError with the given message.
+        """
         tok = self._match(typ)
         if not tok:
             got = self._peek()
@@ -42,6 +53,9 @@ class Parser:
 
     # ------------- entry point -------------
     def parse(self) -> JerseyNode:
+        """
+        Parse the list of tokens and return the root JerseyNode.
+        """
         node = self._parse_jersey()
         extra = self._peek()
         if extra and extra.type != "EOF":
@@ -50,6 +64,9 @@ class Parser:
 
     # program := jersey_block
     def _parse_jersey(self) -> JerseyNode:
+        """
+        Parse a jersey block and return a JerseyNode.
+        """
         self._expect("JERSEY", "to start jersey block")
         self._expect("LBRACE", "after 'jersey'")
         stmts = self._parse_stmt_list()
@@ -58,6 +75,9 @@ class Parser:
 
     # stmt_list := { stmt }
     def _parse_stmt_list(self) -> List[object]:
+        """
+        Parse a list of statements and return them as a list of nodes.
+        """
         stmts = []
         while True:
             tok = self._peek()
@@ -68,6 +88,9 @@ class Parser:
 
     # stmt alternatives
     def _parse_stmt(self):
+        """
+        Parse a single statement and return the corresponding node.
+        """
         tok = self._peek()
         if not tok:
             raise ParserError("Unexpected EOF inside jersey block")
@@ -97,6 +120,9 @@ class Parser:
 
     # team: "Spartan FC";
     def _parse_team(self):
+        """
+        Parse a team statement and return a TeamNode.
+        """
         self._expect("TEAM", "")
         self._expect("COLON", "after 'team'")
         s = self._expect("STRING", "for team name").value
@@ -110,6 +136,9 @@ class Parser:
 
     # primary/secondary: #RRGGBB;
     def _parse_color(self, kind: str):
+        """
+        Parse a color statement and return a ColorNode.
+        """
         if kind == "primary":
             self._expect("PRIMARY", "")
         elif kind == "secondary":
@@ -127,6 +156,9 @@ class Parser:
 
     # number: 23;
     def _parse_number(self):
+        """
+        Parse a number statement and return a NumberNode.
+        """
         self._expect("NUMBER", "")
         self._expect("COLON", "after 'number'")
         n_tok = self._expect("INT", "for jersey number")
@@ -140,6 +172,9 @@ class Parser:
 
     # player: "BEN";
     def _parse_player(self):
+        """
+        Parse a player statement and return a PlayerNode.
+        """
         self._expect("PLAYER", "")
         self._expect("COLON", "after 'player'")
         s = self._expect("STRING", "for player name").value
@@ -153,6 +188,9 @@ class Parser:
 
     # sponsor: "SJSU";
     def _parse_sponsor(self):
+        """
+        Parse a sponsor statement and return a SponsorNode.
+        """
         self._expect("SPONSOR", "")
         self._expect("COLON", "after 'sponsor'")
         s = self._expect("STRING", "for sponsor").value
@@ -166,6 +204,9 @@ class Parser:
 
     # font: IDENT | "Some Font";
     def _parse_font(self):
+        """
+        Parse a font statement and return a FontNode.
+        """
         self._expect("FONT", "")
         self._expect("COLON", "after 'font'")
         tok = self._match("IDENT", "STRING")
@@ -178,6 +219,9 @@ class Parser:
 
     # pattern: stripes(7,14);
     def _parse_pattern(self):
+        """
+        Parse a pattern statement and return a PatternNode.
+        """
         self._expect("PATTERN", "")
         self._expect("COLON", "after 'pattern'")
         ident = self._expect("IDENT", "for pattern ident").value
@@ -193,6 +237,9 @@ class Parser:
         return PatternNode(ident=ident, args=args)
 
     def _parse_arg(self):
+        """
+        Parse a single argument and return its value.
+        """
         tok = self._match("INT", "COLOR", "STRING", "IDENT")
         if not tok:
             got = self._peek()
@@ -202,6 +249,9 @@ class Parser:
         return self._unquote(tok.value) if tok.type == "STRING" else tok.value
     
     def _parse_coord(self) -> tuple[int, int]:
+        """
+        Parse a coordinate and return it as a tuple of two integers (x, y).
+        """
         self._expect("LPAREN", "to open coord")
         x_tok = self._expect("INT", "for x coord")
         self._expect("COMMA", "between x and y coord")
@@ -211,6 +261,9 @@ class Parser:
 
     @staticmethod
     def _unquote(s: str) -> str:
+        """
+        Remove quotes from a string and unescape any escaped characters.
+        """
         if len(s) >= 2 and s[0] == s[-1] == '"':
             return bytes(s[1:-1], "utf-8").decode("unicode_escape")
         return s

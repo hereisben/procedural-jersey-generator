@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Optional, Union
 
+# AST Nodes for Jersey DSL
 @dataclass
 class TeamNode:
     name: str
@@ -45,6 +46,7 @@ class PatternNode:
     ident: str
     args: List[Arg] = field(default_factory=list)
 
+# Define a union type for all possible statement nodes
 Stmt = Union[
     TeamNode, ColorNode, NumberNode, PlayerNode, SponsorNode, FontNode, PatternNode
 ]

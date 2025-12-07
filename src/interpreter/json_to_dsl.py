@@ -2,7 +2,6 @@
 
 from typing import Dict, Any, List
 
-
 def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
     """
     Convert AI suggestion JSON into a jersey DSL string.
@@ -93,19 +92,23 @@ def jersey_json_to_dsl(data: Dict[str, Any]) -> str:
     team_size = int(data.get("team_size", 18))
     lines.append(f'  team: "{team}", (365, 190), {team_size};')
 
+    # NUMBER
     number = int(data.get("number", 23))
     number_size = int(data.get("number_size", 75))
     lines.append(f'  number: {number}, (365, 155), {number_size};')
 
+    # PLAYER
     player = data.get("player", "PLAYER")
     player_size = int(data.get("player_size", 26))
     lines.append(f'  player: "{player}", (365, 85), {player_size};')
 
+    # SPONSOR
     sponsor = data.get("sponsor")
     sponsor_size = int(data.get("sponsor_size", 35))
     if sponsor:
         lines.append(f'  sponsor: "{sponsor}", (115, 125), {sponsor_size};')
 
+    # FONT
     font = data.get("font")
     if font:
         lines.append(f'  font: "{font}";')
