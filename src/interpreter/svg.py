@@ -9,6 +9,9 @@ from pathlib import Path
 
 SVG_HEADER = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>"""
 W, H = 484, 342
+TEXT_MAX_WIDTH_TEAM = 120.0
+TEXT_MAX_WIDTH_SPONSOR = 120.0
+TEXT_MAX_WIDTH_PLAYER = 140.0
 
 FRONT_BODY_PATH = (
     "M 131.85528,19.171174 C 139.53629,16.610837 141.64632,-0.014767775 "
@@ -204,7 +207,8 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
     front_cx = 115
     back_cx  = 365
 
-    front_sponsor = _svg_text(
+    front_sponsor = (
+    _svg_text_wrapped(
         spec.sponsor.text,
         x=spec.sponsor.x,
         y=spec.sponsor.y,
@@ -213,7 +217,9 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         weight="regular",
         fill=ter,
         font=spec.font,
-    ) if spec.sponsor else ""
+        max_width=TEXT_MAX_WIDTH_SPONSOR,
+        ) if spec.sponsor else ""
+    )
 
     front_number = _svg_text(
         str(spec.number.text),
@@ -261,7 +267,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         font=spec.font,
     )
 
-    back_team = _svg_text(
+    back_team = _svg_text_wrapped(
         spec.team.text,
         x=spec.team.x,
         y=spec.team.y,
@@ -270,6 +276,7 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         weight="regular",
         fill=ter,
         font=spec.font,
+        max_width=TEXT_MAX_WIDTH_TEAM,
     )
 
     debug = (
@@ -325,11 +332,76 @@ def render_svg(spec: JerseySpec, opts: RenderOptions | None = None) -> str:
         f'</svg>\n'
     )
 
+def _estimate_text_width(txt: str, font_size: float) -> float:
+    if not txt:
+        return 0.0
+    AVG_CHAR_FACTOR = 0.6
+    return len(txt) * font_size * AVG_CHAR_FACTOR
+
+def _wrap_text_words(txt: str, max_width: float, font_size: float) -> list[str]:
+    words = txt.split()
+    if not words:
+        return []
+
+    lines: list[str] = []
+    current = words[0]
+
+    for w in words[1:]:
+        test = current + " " + w
+        if _estimate_text_width(test, font_size) <= max_width:
+            current = test
+        else:
+            lines.append(current)
+            current = w
+
+    lines.append(current)
+
+    return lines
+
 def _svg_text(txt: str, x: float, y: float, size: int, anchor: str, weight: str, fill: str, font: str, letter_spacing: str | None = None) -> str:
     if txt is None:
         return ""
     ls = f' letter-spacing="{letter_spacing}"' if letter_spacing else ""
     return f'<text x="{x}" y="{y}" text-anchor="{anchor}" font-weight="{weight}" font-family="{_escape(font)}" font-size="{size}" fill="{fill}"{ls}>{_escape(txt)}</text>'
+
+def _svg_text_wrapped(
+    txt: str,
+    x: float,
+    y: float,
+    size: int,
+    anchor: str,
+    weight: str,
+    fill: str,
+    font: str,
+    max_width: float,
+    line_height: float = 1.1,
+    letter_spacing: str | None = None,
+) -> str:
+    if txt is None:
+        return ""
+
+    lines = _wrap_text_words(txt, max_width, size)
+    if not lines:
+        return ""
+
+    ls = f' letter-spacing="{letter_spacing}"' if letter_spacing else ""
+    parts: list[str] = [
+        f'<text x="{x}" y="{y}" text-anchor="{anchor}" font-weight="{weight}" '
+        f'font-family="{_escape(font)}" font-size="{size}" fill="{fill}"{ls}>'
+    ]
+
+    first = True
+    for line in lines:
+        if first:
+            parts.append(f'<tspan x="{x}" dy="0">{_escape(line)}</tspan>')
+            first = False
+        else:
+            parts.append(
+                f'<tspan x="{x}" dy="{size * line_height:.1f}">{_escape(line)}</tspan>'
+            )
+
+    parts.append("</text>")
+    return "".join(parts)
 
 def _escape(s: str) -> str:
     return (
