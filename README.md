@@ -269,6 +269,12 @@ Render SVG:
 python -m src.main examples/basic.jersey --render-svg --out examples/basic.svg
 ```
 
+Save tokens to a file:
+
+```bash
+python -m src.main examples/basic.jersey --tokens > examples/basic.jersey.tokens.txt
+```
+
 Render all examples:
 
 ```bash

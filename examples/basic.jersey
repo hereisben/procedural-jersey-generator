@@ -1,9 +1,12 @@
 jersey {
-  team: "Spartan FC";
-  primary: #000958;
-  secondary: #FF5B2E;
-  pattern: stripes(7,14);
-  number: 23;
-  player: "BEN";
-  sponsor: "San Jose State University";
-}
+        primary: #E5A823;
+        secondary: #0055A2;
+        tertiary: #ffffff;
+        pattern_color: #0055A2;
+        font: "Sport Scholars Outline";
+        team: "Spartan FC", (365, 190), 18;
+        player: "BEN", (365, 85), 26;
+        number: 23, (365, 155), 75;
+        sponsor: "SJSU", (115, 125), 35;
+        pattern: stripes(7,22);
+      }

@@ -1,9 +1,0 @@
-jersey {
-  team: "Minimal";
-  primary: #263238;
-  secondary: #eceff1;
-  number: 8;
-  player: "BEN";
-  sponsor: "MINI";
-  font: "Arial";
-}
