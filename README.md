@@ -2,6 +2,8 @@
 
 ### _A Domain-Specific Language (DSL) & Compiler for Procedural Soccer Kit Design_
 
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/hereisben/procedural-jersey-generator)
+
 ⚽ **Procedural Jersey Generator** is a miniature compiler that turns a small domain-specific language (DSL) into fully rendered SVG soccer jerseys.  
 Built for **CS 152 — Programming Languages**, San José State University.
 
