@@ -216,41 +216,45 @@ pattern: waves(50, 140);
 
 ```
 procedural-jersey-generator/
-├── docs/
+├── docs
 │   └── grammar.ebnf
-├── examples/
-├── src/
-│   ├── ast/
+├── examples
+│   └── basic.jersey
+├── src
+│   ├── ast
 │   │   ├── __init__.py
 │   │   └── nodes.py
-│   ├── interpreter/
+│   ├── interpreter
 │   │   ├── __init__.py
 │   │   ├── json_to_dsl.py
 │   │   └── svg.py
-│   ├── lexer/
+│   ├── lexer
 │   │   ├── __init__.py
 │   │   └── tokenizer.py
-│   ├── parser/
+│   ├── parser
 │   │   ├── __init__.py
 │   │   └── parser.py
-│   ├── semantic/
+│   ├── semantic
 │   │   ├── __init__.py
 │   │   └── checks.py
-│   ├── tests/
+│   ├── tests
 │   │   ├── __init__.py
 │   │   └── manual_json_to_dsl.py
 │   ├── __init__.py
 │   ├── grammar.py
 │   └── main.py
-├── web/
-│   ├── static/
-│   │   ├── fonts/
+├── web
+│   ├── static
+│   │   ├── fonts
 │   │   │   ├── SportScholars-Outline.woff
 │   │   │   └── SportScholars-Outline.woff2
 │   │   └── index.html
 │   └── app.py
+├── .gitignore
 ├── LICENSE
+├── PROGRESS.md
 ├── README.md
+├── folder-structure.md
 ├── requirements.txt
 └── wsgi.py
 ```

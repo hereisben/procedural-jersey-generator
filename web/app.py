@@ -400,7 +400,7 @@ def real_ai_suggest_jersey(message: str) -> dict:
     Use the AI model to suggest a jersey design based on the message.
     """
     completion = groq_client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model="openai/gpt-oss-20b",
         messages=[
             {"role": "system", "content": AI_SYSTEM_PROMPT},
             {"role": "user", "content": message}
